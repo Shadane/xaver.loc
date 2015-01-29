@@ -1,5 +1,5 @@
 <?
 
-echo "raz raz ganopas";
+echo "privet";
 
 ?>

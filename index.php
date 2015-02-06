@@ -32,59 +32,27 @@ diskont = diskont'.  mt_rand(0, 2).';
 diskont = diskont'.  mt_rand(0, 2).';
 
 ';
-
-function enough_stock(){
+function bd_push($key, $key2, $value) {//Эта функция забивает в массив что укажем
     global $bd;
-    foreach ($bd as $key => $value ) {
-    if ($bd[$key]['количество заказано'] <= $bd[$key]['осталось на складе']){
-           diskont_switcher($key); 
-        
-    }
-    else{
-    $bd[$key]['количество заказано'] = $bd[$key]['количество заказано']-1;
-    enough_stock();
-    }
-}
+    $bd[$key][$key2] = $value;
 }
 
-function bd_push($key, $key2, $value) {
+function total_bd($key) { //эта считает сколько в общем получилось заказов и товара на складе, почти не используется
     global $bd;
-    $bd[$key][$key2]=$value;
+    return $bd['игрушка мягкая мишка белый'][$key] + $bd['одежда детская куртка синяя синтепон'][$key] + $bd['игрушка детская велосипед'][$key];
 }
 
-function total_bd($key){
+function diskont_switcher($key) {// эта функция работает со скидками и в зависимости от значений отправляет данные в функцию diskont
     global $bd;
-    return $bd['игрушка мягкая мишка белый'][$key]+$bd['одежда детская куртка синяя синтепон'][$key]+$bd['игрушка детская велосипед'][$key];
-    
-}
-
-if(!function_exists('diskont')){ //not sure if i should use function_exists everytime or not
-    function diskont($bd_key='', $discounter_percent='0', $return='') {
-        global $bd;
-        static $total_price_counter_without_special_events=0;
-        settype($total_price_counter_without_special_events, 'float');
-        if (!$return)
-        {
-            $total_price_counter_without_special_events += $bd[$bd_key]['цена'] * (100-$discounter_percent)/100 * $bd[$bd_key]['количество заказано'];
-//            echo 'PRICE with disount'.$total_price_counter_without_special_events;
-        }
-        else
-        {
-            return $total_price_counter_without_special_events;
-        }
-        
-    }
-}
-function diskont_switcher($key) {
-    global $bd;
-    global $diskont_var_func;
-    if ($key == 'игрушка детская велосипед' && $bd[$key]['количество заказано'] >= 3) {
+    global $diskont_var_func; //создано исключительно для переменной функции, правда особого смысла не вижу :(.
+    if ($key == 'игрушка детская велосипед' && $bd[$key]['количество заказано'] >= 3 && $bd[$key]['осталось на складе'] >= 3) {//добавил еще такое условие, иначе несостыковка - скидка 30%, а товара нет)
         $diskont_var_func = 'diskont';
         $diskont_var_func($key, '30');
+        bd_push('Скидки', 'При заказе "игрушка детская велосипед" в количестве 3 и более и при наличии их на складе ваша скидка составляет', ' 30%');
     } else
         switch ($bd[$key]['diskont']) {
             case 'diskont1':
-                $diskont_var_func = 'diskont'; //бессмысленно, наверное стоило сделать три функции diskont1;diskont2;diskont3 и удаленно запускать их
+                $diskont_var_func = 'diskont'; //бессмысленное испольpование переменной функции, но более полезного не придумалось, возможно лучше было написать три функции.
                 $diskont_var_func($key, '10');
 
                 break;
@@ -102,30 +70,60 @@ function diskont_switcher($key) {
         }
 }
 
-$bd=  parse_ini_string($ini_string, true);
-$diskont_var_func='';
-$enough_stock_counter='';
+if (!function_exists('diskont')) { //эта функция ведет почти все рассчеты.Кстати не знаю стоит ли каждый раз писать вот так if !function exists или не нужно.
+
+    function diskont($bd_key = '', $discounter_percent = '0', $return = '') {  //ключ и проценты получает из предыдущей функции, 
+        global $bd;                                                      //третий параметр вызывается при добавлении в массив Итоговой суммы, он возвращает значение статической переменной,
+        static $total_price_counter_without_special_events = 0;            //в которой ведутся все подсчеты
+        settype($total_price_counter_without_special_events, 'float');
+        if (!$return) {                                                     //если третьего параметра не задано, то 
+            if ($bd[$bd_key]['количество заказано'] <= $bd[$bd_key]['осталось на складе'])
+            { //если заказано <= остаток на складе, то производим вычисления(с учетом скидок)
+                $total_price_counter_without_special_events += $bd[$bd_key]['цена'] * (100 - $discounter_percent) / 100 * $bd[$bd_key]['количество заказано'];
+            } 
+            else 
+            { //если же заказано больше чем есть, то считаем исходя из того сколько есть на складе и выдаем уведомление об этом, записываем его в массив функцией bd_push(первая)
+                $total_price_counter_without_special_events += $bd[$bd_key]['цена'] * (100 - $discounter_percent) / 100 * $bd[$bd_key]['осталось на складе'];
+                bd_push('Уведомления', 'Внимание, позиций "' . $bd_key . '" недостаточно для совершения покупки.', 'Конечная цена пересчитана по остатку на складе ( ' . $bd[$bd_key]['осталось на складе'] . ' ).');
+            }
+        } else {
+            return $total_price_counter_without_special_events;
+        }
+    }
+
+}
 
 
+$bd = parse_ini_string($ini_string, true);
+$diskont_var_func = ''; //снова повторюсь, что эта переменная исключительно для переменной функции
 
+foreach ($bd as $key => $value) { //цикл, который запускает обработку скидок для каждого наименования
+    diskont_switcher($key);
+}
 
-//$var_func='diskont';
-//call_user_func('var_func', 'discont1');
-//diskont_switcher('игрушка мягкая мишка белый');
-//diskont_switcher('одежда детская куртка синяя синтепон');
-//diskont_switcher('игрушка детская велосипед');
+//блок записи в массив 
+bd_push('Итого', 'Наименований заказано:', '3');
+bd_push('Итого', 'Общее количество заказанного товара:', total_bd('количество заказано')); //добавляет значения в массив
 
-//bd_push('Итого', 'Всего наименований заказано', total_bd('количество заказано'));
-//bd_push('Итого', 'Общее кол-во на складе', total_bd('осталось на складе'));
-enough_stock();
-bd_push('Итого', 'Общая сумма заказа(без скидки)', (total_bd('цена')));
+//bd_push('Итого', 'Всего товара заказано на сумму(без учета скидок):', ($bd['игрушка мягкая мишка белый']['цена'] * $bd['игрушка мягкая мишка белый']['количество заказано'] + $bd['одежда детская куртка синяя синтепон']['цена'] * $bd['одежда детская куртка синяя синтепон']['количество заказано'] + $bd['игрушка детская велосипед']['цена'] * $bd['игрушка детская велосипед']['количество заказано'])); //эта гигансткая строка для подсчета и записи в массив цены без учета скидок и товара на складе.
+bd_push('Итого', 'Итоговая сумма заказа:', $diskont_var_func('', '', '1'));
 
+//цикл, который выводит массив на экран.
+echo 'Корзина покупок:'.'<br/>';
+foreach ($bd as $brand => $massiv) { 
+    echo '<br/>';
+    echo '<br/>'.$brand.'<br/>';
+    foreach ($massiv as $inner_key => $value) {
+        if ($brand == 'Уведомления'||$brand == 'Итого'||$brand == 'Скидки'){
+            echo '' . $inner_key . ' ' . $value . '<br/> ';
+        }
+        
+        elseif ($inner_key !== 'diskont') {//чтобы при выводе не показывалась графа diskont
+            echo '[' . $inner_key . '] = ' . $value . '; ';
+        } 
+        }
+    }
 
-if ($bd['игрушка детская велосипед']['количество заказано']>=3){
-bd_push('Скидки', 'Поздравляем! При заказе "игрушка детская велосипед" ваша скидка на этот товар составляет', ' 30%');
-}bd_push('Итого', 'Общая сумма заказа(Со скидкой)', $diskont_var_func('','','1'));
-
-print_r($bd);
 /*
  * 
  * - Вам нужно вывести корзину для покупателя, где указать: 
@@ -145,6 +143,5 @@ print_r($bd);
  * 
 
  */
-
 ?>
 

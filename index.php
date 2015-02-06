@@ -33,6 +33,20 @@ diskont = diskont'.  mt_rand(0, 2).';
 
 ';
 
+function enough_stock(){
+    global $bd;
+    foreach ($bd as $key => $value ) {
+    if ($bd[$key]['количество заказано'] <= $bd[$key]['осталось на складе']){
+           diskont_switcher($key); 
+        
+    }
+    else{
+    $bd[$key]['количество заказано'] = $bd[$key]['количество заказано']-1;
+    enough_stock();
+    }
+}
+}
+
 function bd_push($key, $key2, $value) {
     global $bd;
     $bd[$key][$key2]=$value;
@@ -44,11 +58,73 @@ function total_bd($key){
     
 }
 
-$bd=  parse_ini_string($ini_string, true);
+if(!function_exists('diskont')){ //not sure if i should use function_exists everytime or not
+    function diskont($bd_key='', $discounter_percent='0', $return='') {
+        global $bd;
+        static $total_price_counter_without_special_events=0;
+        settype($total_price_counter_without_special_events, 'float');
+        if (!$return)
+        {
+            $total_price_counter_without_special_events += $bd[$bd_key]['цена'] * (100-$discounter_percent)/100 * $bd[$bd_key]['количество заказано'];
+//            echo 'PRICE with disount'.$total_price_counter_without_special_events;
+        }
+        else
+        {
+            return $total_price_counter_without_special_events;
+        }
+        
+    }
+}
+function diskont_switcher($key) {
+    global $bd;
+    global $diskont_var_func;
+    if ($key == 'игрушка детская велосипед' && $bd[$key]['количество заказано'] >= 3) {
+        $diskont_var_func = 'diskont';
+        $diskont_var_func($key, '30');
+    } else
+        switch ($bd[$key]['diskont']) {
+            case 'diskont1':
+                $diskont_var_func = 'diskont'; //бессмысленно, наверное стоило сделать три функции diskont1;diskont2;diskont3 и удаленно запускать их
+                $diskont_var_func($key, '10');
 
-bd_push('Итого', 'Всего наименований заказано', total_bd('количество заказано'));
-bd_push('Итого', 'Общее кол-во на складе', total_bd('осталось на складе'));
-bd_push('Итого', 'Общая сумма заказа', (total_bd('цена')*$discount));
+                break;
+            case 'diskont2':
+                $diskont_var_func = 'diskont';
+                $diskont_var_func($key, '20');
+
+                break;
+
+            default:
+                $diskont_var_func = 'diskont';
+                $diskont_var_func($key);
+
+                break;
+        }
+}
+
+$bd=  parse_ini_string($ini_string, true);
+$diskont_var_func='';
+$enough_stock_counter='';
+
+
+
+
+//$var_func='diskont';
+//call_user_func('var_func', 'discont1');
+//diskont_switcher('игрушка мягкая мишка белый');
+//diskont_switcher('одежда детская куртка синяя синтепон');
+//diskont_switcher('игрушка детская велосипед');
+
+//bd_push('Итого', 'Всего наименований заказано', total_bd('количество заказано'));
+//bd_push('Итого', 'Общее кол-во на складе', total_bd('осталось на складе'));
+enough_stock();
+bd_push('Итого', 'Общая сумма заказа(без скидки)', (total_bd('цена')));
+
+
+if ($bd['игрушка детская велосипед']['количество заказано']>=3){
+bd_push('Скидки', 'Поздравляем! При заказе "игрушка детская велосипед" ваша скидка на этот товар составляет', ' 30%');
+}bd_push('Итого', 'Общая сумма заказа(Со скидкой)', $diskont_var_func('','','1'));
+
 print_r($bd);
 /*
  * 
@@ -69,7 +145,6 @@ print_r($bd);
  * 
 
  */
-
 
 ?>
 

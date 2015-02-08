@@ -1,5 +1,3 @@
-
-
 <?php
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 ini_set('display_errors', 1);
@@ -26,7 +24,7 @@ diskont = diskont'.  mt_rand(0, 2).';
     
 
 ';//если добавить еще позиций, то все работает
-function bd_push($key, $key2, $value) {//Эта функция забивает в массив что укажем
+function bd_push($key, $key2, $value) {//Эта функция забивает в массив что укажем. в данном случае это полезно, т.к в самом низу цикл форич выводит весь массив на экран.
     global $bd;
     $bd[$key][$key2] = $value;
 }
@@ -63,20 +61,20 @@ if (!function_exists('diskont')) { //эта функция ведет почти
 
     function diskont($bd_key = '', $discounter_percent = '0', $return = '') {  //ключ и проценты получает из предыдущей функции, 
         global $bd;                                                      //третий параметр вызывается при добавлении в массив Итоговой суммы, он возвращает значение статической переменной,
-        static $total_price_counter_without_special_events = 0;            //в которой ведутся все подсчеты
-        settype($total_price_counter_without_special_events, 'float');
+        static $total_price_counter = 0;            //в которой ведутся все подсчеты. 
+        settype($total_price_counter, 'float');
         if (!$return) {                                                     //если третьего параметра не задано, то 
             if ($bd[$bd_key]['количество заказано'] <= $bd[$bd_key]['осталось на складе'])
             { //если заказано <= остаток на складе, то производим вычисления(с учетом скидок)
-                $total_price_counter_without_special_events += $bd[$bd_key]['цена'] * (100 - $discounter_percent) / 100 * $bd[$bd_key]['количество заказано'];
+                $total_price_counter += $bd[$bd_key]['цена'] * (100 - $discounter_percent) / 100 * $bd[$bd_key]['количество заказано'];
             } 
             else 
             { //если же заказано больше чем есть, то считаем исходя из того сколько есть на складе и выдаем уведомление об этом, записываем его в массив функцией bd_push(первая)
-                $total_price_counter_without_special_events += $bd[$bd_key]['цена'] * (100 - $discounter_percent) / 100 * $bd[$bd_key]['осталось на складе'];
+                $total_price_counter += $bd[$bd_key]['цена'] * (100 - $discounter_percent) / 100 * $bd[$bd_key]['осталось на складе'];
                 bd_push('Уведомления', 'Внимание, позиций "' . $bd_key . '" недостаточно для совершения покупки.', 'Конечная цена пересчитана по остатку на складе ( ' . $bd[$bd_key]['осталось на складе'] . ' ).');
             }
         } else {
-            return $total_price_counter_without_special_events;
+            return $total_price_counter;
         }
     }
 
@@ -88,11 +86,14 @@ $key_quantity=0;
 $total_orders=0;
 foreach ($bd as $key => $value) { //цикл, который запускает обработку скидок для каждого наименования
     diskont_switcher($key);
-    $total_orders+=$bd[$key]['количество заказано'];
-    $key_quantity+=1;//тут можно поставить условие, что позиции добавляются только если заказов не 0, но у нас рандом от 1.
+    $total_orders+=$bd[$key]['количество заказано'];//для каждого наименования товара плюсует количество заказанного(чтобы получить в итоге Количество заказанных товаров)
+    if ($bd[$key]['количество заказано']!=0)//у нас в этом смысла нет, но в жизни покупатель может заказать и 0
+    {
+    $key_quantity+=1;//Количество наименований, добавляется только если заказано товара не 0
+    }
 }
 
-//блок записи в массив 
+//блок записи в массив
 bd_push('Итого', 'Наименований заказано:', $key_quantity);
 bd_push('Итого', 'Общее количество заказанного товара:', $total_orders); //добавляет значения в массив
 bd_push('Итого', 'Итоговая сумма заказа:', $diskont_var_func('', '', '1'));
@@ -114,4 +115,5 @@ foreach ($bd as $brand => $massiv) {
     }
 
 ?>
+
 

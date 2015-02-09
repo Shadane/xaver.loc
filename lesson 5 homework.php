@@ -69,6 +69,3 @@ post_get($_POST);
         </p>
     </label>
 </form>
-
-<?php
-?>

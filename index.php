@@ -1,149 +1,254 @@
-
-
 <?php
-/*
- * Следующие задания требуется воспринимать как ТЗ (Техническое задание)
- * p.s. Разработчик, помни! 
- * Лучше уточнить ТЗ перед выполнением у заказчика, если ты что-то не понял, чем сделать, переделать, потерять время, деньги, нервы, репутацию.
- * Не забывай о навыках коммуникации :)
- * 
- * Задание 1
- * - Вы проектируете интернет магазин. Посетитель на вашем сайте создал следующий заказ (цена, количество в заказе и остаток на складе генерируются автоматически):
+/*Пробую разбить задачу на блоки:
+ * 1. Разобраться в структуре html кода, хотя бы поверхностно. Сделать код читаемым. Удалить лишние элементы.
+ * 2. Если правильно понял в файле город.пхп описано сворачивание повторяющихся элементов в цикл. Разобраться в этом и вывести на экран подобным образом.
+ * 3. Попробовать записать данные в сессию и вывести на экран через принт, посмотреть структуру массива.
+ * 4. Вывести сессию таблицей.Узнать что такое td tr table. Попробовать удаление.
+ * 5. Понять как вернуть массив в шаблон.
+ * 6. Заполнить созданный нами массив данными из сессии, на этот раз выводить на экран уже их(таблицей).
+ * 7. Оформить возвращение в шаблон и удаление.
  */
-
-
-$ini_string='
-[игрушка мягкая мишка белый]
-цена = '.  mt_rand(1, 10).';
-количество заказано = '.  mt_rand(1, 10).';
-осталось на складе = '.  mt_rand(0, 10).';
-diskont = diskont'.  mt_rand(0, 2).';
-    
-[одежда детская куртка синяя синтепон]
-цена = '.  mt_rand(1, 10).';
-количество заказано = '.  mt_rand(1, 10).';
-осталось на складе = '.  mt_rand(0, 10).';
-diskont = diskont'.  mt_rand(0, 2).';
-    
-[игрушка детская велосипед]
-цена = '.  mt_rand(1, 10).';
-количество заказано = '.  mt_rand(1, 10).';
-осталось на складе = '.  mt_rand(0, 10).';
-diskont = diskont'.  mt_rand(0, 2).';
-    
-
-';//если добавить еще позиций, то все должно работать
-function bd_push($key, $key2, $value) {//Эта функция забивает в массив что укажем
-    global $bd;
-    $bd[$key][$key2] = $value;
-}
-
-function total_bd($key) { //эта считает сколько в общем получилось заказов и товара на складе, почти не используется
-    global $bd;
-    return $bd['игрушка мягкая мишка белый'][$key] + $bd['одежда детская куртка синяя синтепон'][$key] + $bd['игрушка детская велосипед'][$key];
-}
-
-function diskont_switcher($key) {// эта функция работает со скидками и в зависимости от значений отправляет данные в функцию diskont
-    global $bd;
-    global $diskont_var_func; //создано исключительно для переменной функции, правда особого смысла не вижу :(.
-    if ($key == 'игрушка детская велосипед' && $bd[$key]['количество заказано'] >= 3 && $bd[$key]['осталось на складе'] >= 3) {//добавил еще такое условие, иначе несостыковка - скидка 30%, а товара нет)
-        $diskont_var_func = 'diskont';
-        $diskont_var_func($key, '30');
-        bd_push('Скидки', 'При заказе "игрушка детская велосипед" в количестве 3 и более и при наличии их на складе ваша скидка составляет', ' 30%');
-    } else
-        switch ($bd[$key]['diskont']) {
-            case 'diskont1':
-                $diskont_var_func = 'diskont'; //бессмысленное испольpование переменной функции, но более полезного не придумалось, возможно лучше было написать три функции.
-                $diskont_var_func($key, '10');
-
-                break;
-            case 'diskont2':
-                $diskont_var_func = 'diskont';
-                $diskont_var_func($key, '20');
-
-                break;
-
-            default:
-                $diskont_var_func = 'diskont';
-                $diskont_var_func($key);
-
-                break;
-        }
-}
-
-if (!function_exists('diskont')) { //эта функция ведет почти все рассчеты.Кстати не знаю стоит ли каждый раз писать вот так if !function exists или не нужно.
-
-    function diskont($bd_key = '', $discounter_percent = '0', $return = '') {  //ключ и проценты получает из предыдущей функции, 
-        global $bd;                                                      //третий параметр вызывается при добавлении в массив Итоговой суммы, он возвращает значение статической переменной,
-        static $total_price_counter_without_special_events = 0;            //в которой ведутся все подсчеты
-        settype($total_price_counter_without_special_events, 'float');
-        if (!$return) {                                                     //если третьего параметра не задано, то 
-            if ($bd[$bd_key]['количество заказано'] <= $bd[$bd_key]['осталось на складе'])
-            { //если заказано <= остаток на складе, то производим вычисления(с учетом скидок)
-                $total_price_counter_without_special_events += $bd[$bd_key]['цена'] * (100 - $discounter_percent) / 100 * $bd[$bd_key]['количество заказано'];
-            } 
-            else 
-            { //если же заказано больше чем есть, то считаем исходя из того сколько есть на складе и выдаем уведомление об этом, записываем его в массив функцией bd_push(первая)
-                $total_price_counter_without_special_events += $bd[$bd_key]['цена'] * (100 - $discounter_percent) / 100 * $bd[$bd_key]['осталось на складе'];
-                bd_push('Уведомления', 'Внимание, позиций "' . $bd_key . '" недостаточно для совершения покупки.', 'Конечная цена пересчитана по остатку на складе ( ' . $bd[$bd_key]['осталось на складе'] . ' ).');
+session_start();
+//блоки 
+function show_private($return_private='1'){
+    ?>
+    <div class="form-row-indented"> 
+        <label class="form-label-radio">
+            <? if ($return_private=='1'){
+            echo '<input type="radio" checked="" value="1" name="private">Частное лицо</label><label class="form-label-radio"><input type="radio" value="0" name="private">Компания</label></div>';
             }
-        } else {
-            return $total_price_counter_without_special_events;
-        }
-    }
+            else
+            echo '<input type="radio" value="1" name="private">Частное лицо</label><label class="form-label-radio"><input type="radio"checked="" value="0" name="private">Компания</label></div>';
+}
 
+function show_name($namereturn=''){
+    ?>
+        <div class="form-row"> 
+        <label for="fld_seller_name" class="form-label">
+            <b id="your-name">Ваше имя</b>
+        </label>
+            <?
+        echo '<input type="text" maxlength="40" class="form-input-text" value="'.$namereturn.'" name="seller_name" id="fld_seller_name"></div>';
+            
+}
+
+function show_email($email_return=''){
+    ?>
+    <div class="form-row"> 
+        <label for="fld_email" class="form-label">Электронная почта</label>
+        <?
+        echo '<input type="text" class="form-input-text" value="'.$email_return.'" name="email" id="fld_email"></div>';
+            
+}
+
+function show_send_email($return_send_email=''){
+    ?>
+<div class="form-row-indented">
+        <label class="form-label-checkbox" for="allow_mails"> 
+            
+      <?='<input type="checkbox" '.$return_send_email.' value="1" name="allow_mails" id="allow_mails" class="form-input-checkbox">'?>
+            <span class="form-text-checkbox">Я не хочу получать вопросы по объявлению по e-mail</span> 
+        </label> 
+    </div>
+        <?php
+}
+
+function show_phone($phonereturn=''){
+    ?>
+    <div class="form-row"> 
+        <label id="fld_phone_label" for="fld_phone" class="form-label">Номер телефона</label> 
+        <?echo '<input type="text" class="form-input-text" value="'.$phonereturn.'" name="phone" id="fld_phone"></div>';
+}
+
+function show_city_block($city=''){
+     
+    $cities=['641780'=>'Новосибирск','641490'=>'Барабинск','641510'=>'Бердск','641600'=>'Искитим','641630'=>'Колывань','641680'=>'Краснообск','641710'=>'Куйбышев','641760'=>'Мошково','641790'=>'Обь','641800'=>'Ордынское','641970'=>'Черепаново'];
+    ?>
+    <div id="f_location_id" class="form-row form-row-required"> 
+        <label for="region" class="form-label">Город</label> 
+        <select title="Выберите Ваш город" name="location_id" id="region" class="form-input-select"> 
+            <option value="">-- Выберите город --</option>
+            <option class="opt-group" disabled="disabled">-- Города --</option>
+            <?php // цикл для вывода городов в выпадающем списке
+            foreach ($cities as $key=>$value){
+                $selected=($key==$city)? 'selected=""' : '';
+                echo ' <option data-coords=",,"'.$selected.' value="'.$key.'">'.$value.'</option>';
+            }
+            ?>
+            <option id="select-region" value="0">Выбрать другой...</option>
+        </select>
+    </div>
+    
+    <?php
+ }
+ function category_block($returncategory=''){
+    
+    $categories= [
+    'Транспорт' => ['9' => 'Автомобили с пробегом', '109' => 'Новые автомобили', '14' => 'Мотоциклы и мототехника', '81' => 'Грузовики и спецтехника', '11' => 'Водный транспорт', '10' => 'Запчасти и аксессуары'],
+    'Недвижимость' => ['24' => 'Квартиры', '23' => 'Комнаты', '25' => 'Дома, дачи, коттеджи', '26' => 'Земельные участки', '85' => 'Гаражи и машиноместа', '42' => 'Коммерческая недвижимость', '86' => 'Недвижимость за рубежом'],
+    'Работа' => ['111' => 'Вакансии (поиск сотрудников)', '112' => 'Резюме (поиск работы)'],
+    'Услуги' => ['114' => 'Предложения услуг', '115' => 'Запросы на услуги'],
+    'Личные вещи' => ['27' => 'Одежда, обувь, аксессуары', '29' => 'Детская одежда и обувь', '30' => 'Товары для детей и игрушки', '28' => 'Часы и украшения', '88' => 'Красота и здоровье'],
+    'Для дома и дачи' => ['21' => 'Бытовая техника', '20' => 'Мебель и интерьер', '87' => 'Посуда и товары для кухни', '82' => 'Продукты питания', '19' => 'Ремонт и строительство', '106' => 'Растения'],
+    'Бытовая электроника' => ['32' => 'Аудио и видео', '97' => 'Игры, приставки и программы', '31' => 'Настольные компьютеры', '98' => 'Ноутбуки', '99' => 'Оргтехника и расходники', '96' => 'Планшеты и электронные книги', '84' => 'Телефоны', '101' => 'Товары для компьютера', '105' => 'Фототехника'],
+    'Хобби и отдых' => ['33' => 'Билеты и путешествия', '34' => 'Велосипеды', '83' => 'Книги и журналы', '36' => 'Коллекционирование', '38' => 'Музыкальные инструменты', '102' => 'Охота и рыбалка', '39' => 'Спорт и отдых', '103' => 'Знакомства'],
+    'Животные' => ['89' => 'Собаки', '90' => 'Кошки', '91' => 'Птицы', '92' => 'Аквариум', '93' => 'Другие животные', '94' => 'Товары для животных'],
+    'Для бизнеса' =>['116'=>'Готовый бизнес','40'=>'Оборудование для бизнеса']
+    ];
+    ?>
+    <div class="form-row"> 
+        <label for="fld_category_id" class="form-label">Категория</label> 
+        <select title="Выберите категорию объявления" name="category_id" id="fld_category_id" class="form-input-select">
+            <option value="">-- Выберите категорию --</option>
+            <?php
+            foreach ($categories as $category=>$subarray){ //цикл для вывода категорий и субкатерогий в выпадающем списке
+                echo '<optgroup label="'.$category.'">';
+                foreach ($subarray as $key=>$subcatname){
+                    $selected=($key==$returncategory)? 'selected=""' : '';
+                    echo '<option '.$selected.' value="'.$key.'">'.$subcatname;
+                }
+            }
+            ?>
+            
+            
+        </select> 
+    </div>
+
+    <?php
+}
+
+function show_title($returntitle=''){
+    ?>
+     <div id="f_title" class="form-row f_title">
+        <label for="fld_title" class="form-label">Название объявления</label> 
+      <?  echo '<input type="text" maxlength="50" class="form-input-text-long" value="'.$returntitle.'" name="title" id="fld_title"></div>';
+}
+
+function show_description($returndescription=''){
+    ?>
+     <div class="form-row"> 
+        <label for="fld_description" class="form-label" id="js-description-label">Описание объявления</label>
+      <?  echo '<textarea maxlength="3000" name="description" placeholder="'.$returndescription.'" id="fld_description" class="form-input-textarea"></textarea></div>';
+}
+
+function show_price($returnprice='0'){
+    ?>
+    <div id="price_rw" class="form-row rl"> <label id="price_lbl" for="fld_price" class="form-label">Цена</label>
+      <?  echo '<input type="text" maxlength="9" class="form-input-text-short" value="'.$returnprice.'" name="price" id="fld_price">';
 }
 
 
-$bd = parse_ini_string($ini_string, true);
-$diskont_var_func = ''; //снова повторюсь, что эта переменная исключительно для переменной функции
-$key_quantity=0;
-foreach ($bd as $key => $value) { //цикл, который запускает обработку скидок для каждого наименования
-    diskont_switcher($key);
-    $key_quantity+=1;//тут можно поставить условие, что позиции добавляются, только если заказов не 0, но у нас рандом от 1.
+function table(){
+    //выставляет обьявления если при вводе данных мы ввели Название обьявления
+//    if (isset($_SESSION['ads'])){
+ if (isset($_POST['title'],$_SESSION['ads']))
+{
+         
+     foreach ($_SESSION['ads']as $adsnumber=>$adsdata){
+     if ($_POST['title']==$_SESSION['ads'][$adsnumber]['title'])
+                {
+unset($_POST['main_form_submit']);
+echo '<tr><td>Объявление с таким названием уже существует, введите другое.</td></tr>';
+break;
+
+     }
+     }
+
+$_SESSION['ads'][]=$_POST;     
+print_r($_SESSION);
+
+  foreach ($_SESSION['ads'] as $key=>$array){
+      
+      if (($_SESSION['ads'][$key]['title']&&isset($_SESSION['ads'][$key]['main_form_submit']))){
+          
+      echo '<tr>';
+          echo '<td>'.$key.'</td>';
+          echo '<td><input type="submit" name="return_to_form" value="'.$array['title'].'"></td>';
+          echo '<td>|'.$array['price'].'</td>';
+          echo '<td>|'.$array['seller_name'].'</td>';
+          echo '<td><input type="submit" value="'.$key.'" id="iddd" name="table_row_delete"></td>';
+          echo '</tr>';
+         
+        }else {unset($_SESSION['ads'][$key]);}
+        }
+}  
+print_r($_SESSION);
+print_r($_POST);
 }
+//else{
+//   $_SESSION['ads'][]=$_POST; 
+//   table();
+//}
 
-//блок записи в массив 
-bd_push('Итого', 'Наименований заказано:', $key_quantity);
-bd_push('Итого', 'Общее количество заказанного товара:', total_bd('количество заказано')); //добавляет значения в массив
 
-//bd_push('Итого', 'Всего товара заказано на сумму(без учета скидок):', ($bd['игрушка мягкая мишка белый']['цена'] * $bd['игрушка мягкая мишка белый']['количество заказано'] + $bd['одежда детская куртка синяя синтепон']['цена'] * $bd['одежда детская куртка синяя синтепон']['количество заказано'] + $bd['игрушка детская велосипед']['цена'] * $bd['игрушка детская велосипед']['количество заказано'])); //эта гигансткая строка для подсчета и записи в массив цены без учета скидок и товара на складе.
-bd_push('Итого', 'Итоговая сумма заказа:', $diskont_var_func('', '', '1'));
-
-//цикл, который выводит массив на экран.
-echo 'Корзина покупок:'.'<br/>';
-foreach ($bd as $brand => $massiv) { 
-    echo '<br/>';
-    echo '<br/>'.$brand.'<br/>';
-    foreach ($massiv as $inner_key => $value) {
-        if ($brand == 'Уведомления'||$brand == 'Итого'||$brand == 'Скидки'){
-            echo '' . $inner_key . ' ' . $value . '<br/> ';
-        }
-        
-        elseif ($inner_key !== 'diskont') {//чтобы при выводе не показывалась графа diskont
-            echo '[' . $inner_key . '] = ' . $value . '; ';
-        } 
-        }
-    }
-
-/*
- * 
- * - Вам нужно вывести корзину для покупателя, где указать: 
- * 1) Перечень заказанных товаров, их цену, кол-во и остаток на складе
- * 2) В секции ИТОГО должно быть указано: сколько всего наименовний было заказано, каково общее количество товара, какова общая сумма заказа
- * - Вам нужно сделать секцию "Уведомления", где необходимо извещать покупателя о том, что нужного количества товара не оказалось на складе
- * - Вам нужно сделать секцию "Скидки", где известить покупателя о том, что если он заказал "игрушка детская велосипед" в количестве >=3 штук, то на эту позицию ему 
- * автоматически дается скидка 30% (соответственно цены в корзине пересчитываются тоже автоматически)
- * 3) у каждого товара есть автоматически генерируемый скидочный купон diskont, используйте переменную функцию, чтобы делать скидку на итоговую цену в корзине
- * diskont0 = скидок нет, diskont1 = 10%, diskont2 = 20%
- * 
- * В коде должно быть использовано:
- * - не менее одной функции
- * - не менее одного параметра для функции
- * операторы if, else, switch
- * статические и глобальные переменные в теле функции
- * 
-
- */
+if (isset($_POST['table_row_delete'])){
+              unset($_SESSION['ads'][$_POST['table_row_delete']]);
+              unset($_POST['table_row_delete']);
+          }
+//2)	Всё что пришло из формы записать в $_SESSION как новое объявление.
+//3)	Под формой создать вывод всех объявлений, содержащихся в сессии по шаблону:
+//Название объявления | Цена | Имя | Удалить
+//4)	При нажатии на «название объявления» на экран выводится шаблон объявления как из пункта 1, только в места полей подставляются истинные значения
+//5)	При нажатии на «Удалить», объявление удаляется из сессии
 ?>
 
+
+
+
+<form  method="post">
+    <?php
+    if (isset($_POST['return_to_form'])) {
+        foreach ($_SESSION['ads'] as $key => $values) {
+            if ($_POST['return_to_form'] == $_SESSION['ads'][$key]['title']) {
+                $return_key = $key;
+            }
+        }
+
+//        echo '<td><input type="button" value="' . $return_key . '" id="iddd" name="oneone"></td>';  //просто чтобы увидеть возвращает ли
+        show_private($_SESSION['ads'][$return_key]['private']);
+        show_name($_SESSION['ads'][$return_key]['seller_name']);
+        show_email($_SESSION['ads'][$return_key]['email']);
+        if (isset($_SESSION['ads'][$return_key]['allow_mails'])) {
+            show_send_email('checked=""');
+        } else {
+            show_send_email();
+        }
+        show_phone($_SESSION['ads'][$return_key]['phone']);
+        show_city_block($_SESSION['ads'][$return_key]['location_id']);
+        category_block($_SESSION['ads'][$return_key]['category_id']);
+        show_title($_SESSION['ads'][$return_key]['title']);
+        show_description($_SESSION['ads'][$return_key]['description']);
+        show_price($_SESSION['ads'][$return_key]['price']);
+    } else {
+        show_private();
+        show_name();
+        show_email();
+        show_send_email();
+        show_phone();
+        show_city_block();
+        category_block();
+        show_title();
+        show_description();
+        show_price();
+    }
+    ?>
+    <div class="form-row-indented form-row-submit b-vas-submit" id="js_additem_form_submit">
+        <div class="vas-submit-button pull-left"> 
+            <span class="vas-submit-border"></span> 
+            <span class="vas-submit-triangle"></span> 
+            <input type="submit" value="Разместить объявление" id="form_submit" name="main_form_submit" class="vas-submit-input" > </div>
+    </div>
+        
+        
+</form>
+ <table method="post">
+  <tr>
+    <td>№ </td>
+    <td>|Название объявления </td>
+    <td>|Цена </td>
+    <td>|Имя </td>
+    <td>|Удалить </td>
+  </tr>
+  <?
+  table();?>
+</table> 

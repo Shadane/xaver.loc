@@ -15,11 +15,10 @@ function show_table(){ //блок вывода таблицы по шаблон�
     ?>                              
                                     <table method="post">
                                         <tr>
-                                            <td>|Название объявления </td>
-                                            <td>|Цена </td>
-                                            <td>|Имя </td>
-                                            <td>|Удалить </td>
-                                            <td><input type="submit" value="Очистить сессию" id="form_submit" name="session_destroy" class="vas-submit-input" >
+                                            <td>| Название объявления </td>
+                                            <td> | Цена </td>
+                                            <td> | Имя </td>
+                                            <td> | Удалить | </td>
                                         </tr>
     <?
 /*если сессия не пустая, то перебираем значения подмассива ['ads'] в сессии, 
@@ -32,10 +31,10 @@ function show_table(){ //блок вывода таблицы по шаблон�
         foreach ($_SESSION['ads'] as $key => $array) {
             if ($_SESSION['ads'][$key]['title']) {
                 echo '<tr>';
-                echo '<td><a href="?formreturn=' . $key . '"> ' . $array["title"] . '</td>';
-                echo '<td>|' . $array['price'] . '</td>';
-                echo '<td>|' . $array['seller_name'] . '</td>';
-                echo '<td><a href="?delentry=' . $key . '"> Удалить</td>';
+                echo '<td>| <a href="?formreturn=' . $key . '"> ' . $array["title"] . '</td>';
+                echo '<td> | ' . $array['price'] . '</td>';
+                echo '<td> | ' . $array['seller_name'] . '</td>';
+                echo '<td> | <a href="?delentry=' . $key . '">Удалить</a> |</td>';
                 echo '</tr>';
             } else {
                 unset($_SESSION['ads'][$key]);
@@ -46,12 +45,6 @@ function show_table(){ //блок вывода таблицы по шаблон�
     ?>
                                       </table>
     <?
-}
-
-function session_destr() {
-
-    session_destroy();
-    echo'<meta http-equiv="refresh" content="0 url=http://xaver.loc"/>'; //делаю перенаправление, иначе в url остаются параметры от старых вводов get.
 }
 
 function show_form($showform_params) { 
@@ -145,12 +138,12 @@ function show_form($showform_params) {
                                                             <div id="f_title" class="form-row f_title">
                                                                 <label for="fld_title" class="form-label">Название объявления</label> 
                                                                 
-<?='<input type="text" maxlength="50" class="form-input-text-long" value="' . $showform_params["returntitle"] . '" name="title" id="fld_title"></div>';
+<?='<input type="text" maxlength="50" placeholder="обязательное поле" class="form-input-text-long" value="' . $showform_params["returntitle"] . '" name="title" id="fld_title"></div>';
 ?>
                                                             <div class="form-row"> 
                                                                <label for="fld_description" class="form-label" id="js-description-label">Описание объявления</label>
                                                                
-<?='<textarea maxlength="3000" name="description" placeholder="' . $showform_params["returndescription"] . '" id="fld_description" class="form-input-textarea"></textarea></div>';
+<?='<textarea maxlength="3000" name="description" id="fld_description" class="form-input-textarea">' . $showform_params["returndescription"] . '</textarea></div>';
 ?>
                                                                <div id="price_rw" class="form-row rl"> <label id="price_lbl" for="fld_price" class="form-label">Цена</label>
 
@@ -185,8 +178,6 @@ function show_form($showform_params) {
   
    if (isset($_POST['main_form_submit'])) { //блок проверки какая кнопка была нажата. Если Отправить, то передаем записи из поста в сессию
        $_SESSION['ads'][] = $_POST;
-   }  elseif (isset($_POST['session_destroy'])) {  //это исключительно для удобства проверки, чтобы не закрывать каждый раз браузер
-       session_destr();
    }elseif (isset($_GET['delentry'])) {           //если нажата кнопка удалить
        unset($_SESSION['ads'][$_GET['delentry']]);
    }elseif (isset($_GET['formreturn'])) {        //если нажали на название обьявления, то заполняем массив $showform_params , если не нажали, то на 164 строке заполнено по дефолту.

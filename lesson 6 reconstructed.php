@@ -13,7 +13,7 @@
 //блоки
 function show_table(){ //блок вывода таблицы по шаблону 
     ?>                              
-                                    <table method="post" style="border: 1px solid black; margin-top:30px;margin-left: 50px">
+                                    <table method="post" style="border: 1px solid black; margin-top:30px;margin-left: 30px">
                                         <div >
                                         <tr>
                                             <td> |  Название объявления </td>
@@ -158,7 +158,7 @@ function show_form($showform_params) {
                                                             <div>
                                                                 <div style="margin-left:161px;  margin-top:10px"> 
                                                                    
-                                                                    <input style="height:30px" type="submit" value="Отправить" name="main_form_submit"  > </div>
+                                                                    <input style="height:30px;font-weight: 700;color:white;border-radius: 3px;background: rgb(64,199,129);box-shadow: 0 -3px rgb(53,167,110) inset;transition: 0.2s;" type="submit" value="Отправить" name="main_form_submit"  > </div>
                                                             </div>
                                                           </form>
 

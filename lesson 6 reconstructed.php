@@ -13,13 +13,15 @@
 //блоки
 function show_table(){ //блок вывода таблицы по шаблону 
     ?>                              
-                                    <table method="post">
+                                    <table method="post" style="border: 1px solid black; margin-top:30px;margin-left: 50px">
+                                        <div >
                                         <tr>
-                                            <td>| Название объявления </td>
-                                            <td> | Цена </td>
-                                            <td> | Имя </td>
-                                            <td> | Удалить | </td>
+                                            <td> |  Название объявления </td>
+                                            <td>  |  Цена </td>
+                                            <td>  |  Имя </td>
+                                            <td>  |  Удалить | </td>
                                         </tr>
+                                        </div>
     <?
 /*если сессия не пустая, то перебираем значения подмассива ['ads'] в сессии, 
  * если они содержат что-то в строке title, то выводим на экран обьявление. 
@@ -30,15 +32,17 @@ function show_table(){ //блок вывода таблицы по шаблон�
     if (!empty($_SESSION)) {
         foreach ($_SESSION['ads'] as $key => $array) {
             if ($_SESSION['ads'][$key]['title']) {
+             
                 echo '<tr>';
-                echo '<td>| <a href="?formreturn=' . $key . '"> ' . $array["title"] . '</td>';
-                echo '<td> | ' . $array['price'] . '</td>';
-                echo '<td> | ' . $array['seller_name'] . '</td>';
-                echo '<td> | <a href="?delentry=' . $key . '">Удалить</a> |</td>';
+                echo '<td> |  <a href="?formreturn=' . $key . '"> ' . $array["title"] . '</td>';
+                echo '<td>  |  ' . $array['price'] . '</td>';
+                echo '<td>  |  ' . $array['seller_name'] . '</td>';
+                echo '<td>  |  <a href="?delentry=' . $key . '">Удалить</a> |</td>';
                 echo '</tr>';
+              
             } else {
                 unset($_SESSION['ads'][$key]);
-                echo '<text>Введите название обьявления</text>';
+                echo '<text style="margin-left:160px;">Введите название обьявления</text>';
             }
         }
     }
@@ -53,48 +57,48 @@ function show_form($showform_params) {
  */
 ?>
                                             <form  method="post">
-                                                <div class="form-row-indented"> 
-                                                    <label class="form-label-radio">
+                                                <div style="position: static; margin-left:220px;margin-top:10px"> 
+                                                    <label>
 <?
     if ($showform_params['return_private'] == '1') {
-        echo '<input type="radio" checked="" value="1" name="private">Частное лицо</label><label class="form-label-radio"><input type="radio" value="0" name="private">Компания</label></div>';
+        echo '<input type="radio" checked="" value="1" name="private">Частное лицо</label><label style="margin-left:20px"><input type="radio" value="0" name="private">Компания</label></div>';
     } else {
-        echo '<input type="radio" value="1" name="private">Частное лицо</label><label class="form-label-radio"><input type="radio"checked="" value="0" name="private">Компания</label></div>';
+        echo '<input type="radio" value="1" name="private">Частное лицо</label><label style="margin-left:20px"><input type="radio"checked="" value="0" name="private">Компания</label></div>';
             }
 ?>
-                                                 <div class="form-row"> 
-                                                    <label for="fld_seller_name" class="form-label">
-                                                           <b id="your-name">Ваше имя</b>
+                                                 <div style="margin-left:60px;margin-top:10px"> 
+                                                    <label>
+                                                           <b>Ваше имя</b>
                                                       </label>
 <?
-    echo '<input type="text" maxlength="40" class="form-input-text" value="' . $showform_params["namereturn"] . '" name="seller_name" id="fld_seller_name"></div>';
+    echo '<input style="margin-left:85px; width:230px" type="text" maxlength="40" value="' . $showform_params["namereturn"] . '" name="seller_name"></div>';
 ?>
-                                                 <div class="form-row"> 
-                                                     <label for="fld_email" class="form-label">Электронная почта</label>
+                                                 <div style="margin-left:60px;  margin-top:10px"> 
+                                                     <label>Электронная почта</label>
 <?
-    echo '<input type="text" class="form-input-text" value="' . $showform_params["email_return"] . '" name="email" id="fld_email"></div>';
+    echo '<input style="margin-left:27px; width:230px;" type="text"  value="' . $showform_params["email_return"] . '" name="email" id="fld_email"></div>';
 ?>
-                                                   <div class="form-row-indented">
-                                                      <label class="form-label-checkbox" for="allow_mails"> 
+                                                   <div style="margin-left:217px;  margin-top:10px">
+                                                      <label> 
 
 <?= '<input type="checkbox" ' . $showform_params["return_send_email"] . ' value="1" name="allow_mails" id="allow_mails" class="form-input-checkbox">' 
 ?>
-                                                     <span class="form-text-checkbox">Я не хочу получать вопросы по объявлению по e-mail</span> 
+                                                     Я не хочу получать вопросы по объявлению по e-mail
                                                           </label> 
                                                              </div>
                                                      
-                                                     <div class="form-row"> 
-                                                          <label id="fld_phone_label" for="fld_phone" class="form-label">Номер телефона</label> 
+                                                     <div style="margin-left:60px;  margin-top:10px"> 
+                                                          <label>Номер телефона</label> 
 <?
-    echo '<input type="text" class="form-input-text" value="' . $showform_params["phonereturn"] . '" name="phone" id="fld_phone"></div>';
+    echo '<input style="margin-left:46px; width:230px" type="text"  value="' . $showform_params["phonereturn"] . '" name="phone"></div>';
 
     $cities = ['641780' => 'Новосибирск', '641490' => 'Барабинск', '641510' => 'Бердск', '641600' => 'Искитим', '641630' => 'Колывань', '641680' => 'Краснообск', '641710' => 'Куйбышев', '641760' => 'Мошково', '641790' => 'Обь', '641800' => 'Ордынское', '641970' => 'Черепаново'];
 ?>
-                                                       <div id="f_location_id" class="form-row form-row-required"> 
-                                                           <label for="region" class="form-label">Город</label> 
-                                                            <select title="Выберите Ваш город" name="location_id" id="region" class="form-input-select"> 
-                                                              <option value="">-- Выберите город --</option>
-                                                                 <option class="opt-group" disabled="disabled">-- Города --</option>
+                                                       <div style="margin-left:60px;  margin-top:10px"> 
+                                                           <label >Город</label> 
+                                                            <select style="margin-left:118px; width:230px;height:22px" title="Выберите Ваш город" name="location_id"> 
+                                                              <option>-- Выберите город --</option>
+                                                                 <option disabled="disabled">-- Города --</option>
 <?
     // цикл для вывода городов в выпадающем списке
     foreach ($cities as $key => $value) {
@@ -102,7 +106,7 @@ function show_form($showform_params) {
         echo ' <option data-coords=",,"' . $selected . ' value="' . $key . '">' . $value . '</option>';
     }
 ?>
-                                                        <option id="select-region" value="0">Выбрать другой...</option>
+                                                        <option>Выбрать другой...</option>
                                                              </select>
                                                                   </div>
 
@@ -120,9 +124,9 @@ function show_form($showform_params) {
         'Для бизнеса' => ['116' => 'Готовый бизнес', '40' => 'Оборудование для бизнеса']
                   ];
 ?>
-                                                            <div class="form-row"> 
+                                                            <div style="margin-left:60px;  margin-top:10px"> 
                                                                 <label for="fld_category_id" class="form-label">Категория</label> 
-                                                                <select title="Выберите категорию объявления" name="category_id" id="fld_category_id" class="form-input-select">
+                                                                <select style="margin-left:89px; width:230px;height:22px" name="category_id">
                                                                     <option value="">-- Выберите категорию --</option>
 <?
     foreach ($categories as $category => $subarray) { //цикл для вывода категорий и субкатерогий в выпадающем списке
@@ -135,26 +139,26 @@ function show_form($showform_params) {
 ?>
                                                                 </select> 
                                                             </div>
-                                                            <div id="f_title" class="form-row f_title">
-                                                                <label for="fld_title" class="form-label">Название объявления</label> 
+                                                            <div style="margin-left:60px;  margin-top:10px">
+                                                                <label>Название объявления</label> 
                                                                 
-<?='<input type="text" maxlength="50" placeholder="обязательное поле" class="form-input-text-long" value="' . $showform_params["returntitle"] . '" name="title" id="fld_title"></div>';
+<?='<input style="margin-left:12px; width:230px;" type="text" maxlength="50" placeholder="обязательное поле" value="' . $showform_params["returntitle"] . '" name="title"></div>';
 ?>
-                                                            <div class="form-row"> 
-                                                               <label for="fld_description" class="form-label" id="js-description-label">Описание объявления</label>
+                                                            <div style="margin-left:60px;  margin-top:10px"> 
+                                                               <label style="position:absolute">Описание объявления</label>
                                                                
-<?='<textarea maxlength="3000" name="description" id="fld_description" class="form-input-textarea">' . $showform_params["returndescription"] . '</textarea></div>';
+<?='<textarea style="margin-left:162px; width:230px;height:70px;" maxlength="3000" name="description" >' . $showform_params["returndescription"] . '</textarea></div>';
 ?>
-                                                               <div id="price_rw" class="form-row rl"> <label id="price_lbl" for="fld_price" class="form-label">Цена</label>
+                                                               <div style="margin-left:60px;  margin-top:10px"> 
+                                                                   <label >Цена</label>
 
-<?='<input type="text" maxlength="9" class="form-input-text-short" value="' . $showform_params["returnprice"] . '" name="price" id="fld_price">';
+<?='<input style="margin-left:124px; width:230px" type="text" maxlength="9"  value="' . $showform_params["returnprice"] . '" name="price" >';
 ?>
                                                                    
-                                                            <div class="form-row-indented form-row-submit b-vas-submit" id="js_additem_form_submit">
-                                                                <div class="vas-submit-button pull-left"> 
-                                                                    <span class="vas-submit-border"></span> 
-                                                                    <span class="vas-submit-triangle"></span> 
-                                                                    <input type="submit" value="Отправить" id="form_submit" name="main_form_submit" class="vas-submit-input" > </div>
+                                                            <div>
+                                                                <div style="margin-left:161px;  margin-top:10px"> 
+                                                                   
+                                                                    <input style="height:30px" type="submit" value="Отправить" name="main_form_submit"  > </div>
                                                             </div>
                                                           </form>
 

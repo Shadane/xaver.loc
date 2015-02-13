@@ -142,7 +142,7 @@ function show_form($showform_params) {
                                                             <div style="margin-left:60px;  margin-top:10px">
                                                                 <label>Название объявления</label> 
                                                                 
-<?='<input style="margin-left:12px; width:230px;" type="text" maxlength="50" placeholder="обязательное поле" value="' . $showform_params["returntitle"] . '" name="title"></div>';
+<?='<input style="margin-left:12px; width:230px;" type="text" maxlength="50" placeholder="' .$showform_params['notice_field_is_empty']. '" value="' . $showform_params["returntitle"] . '" name="title"></div>';
 ?>
                                                             <div style="margin-left:60px;  margin-top:10px"> 
                                                                <label style="position:absolute">Описание объявления</label>
@@ -177,14 +177,15 @@ function show_form($showform_params) {
                         'returncategory' => "",
                         'returntitle' => "",
                         'returndescription' => "",
-                        'returnprice' => "0"
+                        'returnprice' => "0",
+                        'notice_field_is_empty'=> ""
                         ];
   
    if (isset($_POST['main_form_submit'])) { //блок проверки какая кнопка была нажата. Если Отправить, то передаем записи из поста в сессию
        if (!empty($_POST['title'])){        //Добавляем в сессию только обьявы с названием, в остальных случаях помечаем звездочкой поле которое необходимо ввести.
        $_SESSION['ads'][] = $_POST;
        }else {
-           echo'<h2 style="color:#ff0000;position: absolute; left:55; top:223">*</h2>';
+           $showform_params['notice_field_is_empty']='Введите название';
        }
    }elseif (isset($_GET['delentry'])) {           //если нажата кнопка удалить
        unset($_SESSION['ads'][$_GET['delentry']]);
@@ -198,8 +199,9 @@ function show_form($showform_params) {
            'returncategory' => $_SESSION['ads'][$_GET['formreturn']]['category_id'],
            'returntitle' => $_SESSION['ads'][$_GET['formreturn']]['title'],
            'returndescription' => $_SESSION['ads'][$_GET['formreturn']]['description'],
-           'returnprice' => $_SESSION['ads'][$_GET['formreturn']]['price']];
-       $showform_params['return_send_email'] = (isset($_SESSION['ads'][$_GET['formreturn']]['allow_mails'])) ? 'checked=""' : ''; //закончили заполнение массива
+           'returnprice' => $_SESSION['ads'][$_GET['formreturn']]['price'],
+           'notice_field_is_empty'=> ""];
+       $showform_params['return_send_email'] = (isset($_SESSION['ads'][$_GET['formreturn']]['allow_mails'])) ? 'checked=""' : '';//закончили заполнение массива
    }
   show_form($showform_params); //теперь выводим на экран форму с параметрами. если они по дефолту, то ничего не возвращается в форму, если они заполнениы, то мы видим заполненную форму.
   show_table(); // выводим таблицу название-цена-имя-удалить.

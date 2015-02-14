@@ -165,7 +165,7 @@ function show_form($showform_params) {
 //конец блоков 
 //  $ads_container=  unserialize($_COOKIE['ads']); 
   
-$ads_container= unserialize(file_get_contents('./adsholder.txt'));
+$ads_container= @unserialize(file_get_contents('./adsholder.txt'));
   
     $showform_params = ['return_private' => "1", //эта переменная передается в форму на строке 204, если она заполнена данными, то они выведутся в нашей форме
                         'namereturn' => "",

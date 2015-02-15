@@ -3,12 +3,6 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 ini_set('display_errors', 1);
 
 //блоки
-//function set_ads_cookie(){
-//             global $ads_container;
-//             unset($_COOKIE['ads']);
-//             setcookie('ads', "", time()-3600);
-//             setcookie('ads', serialize($ads_container), time()+3600*24*7);
-//}
 
 function show_table(){ //блок вывода таблицы по шаблону 
     
@@ -163,7 +157,6 @@ function show_form($showform_params) {
 <?
 }
 //конец блоков 
-//  $ads_container=  unserialize($_COOKIE['ads']); 
   if (is_file('./adsholder.txt')){
 $ads_container= unserialize(file_get_contents('./adsholder.txt'));
   }
@@ -207,7 +200,6 @@ $ads_container= unserialize(file_get_contents('./adsholder.txt'));
            'notice_field_is_empty'=> ""];
        $showform_params['return_send_email'] = (isset($ads_container[$_GET['formreturn']]['allow_mails'])) ? 'checked=""' : '';//закончили заполнение массива
    }
-//  set_ads_cookie();
    if ($ads_container!==$ads_save_checker){//ведем запись в файл только если что-то было изменено
   file_put_contents('./adsholder.txt', serialize($ads_container));
    }

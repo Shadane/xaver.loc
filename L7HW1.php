@@ -164,8 +164,13 @@ function show_form($showform_params) {
 }
 //конец блоков 
 //  $ads_container=  unserialize($_COOKIE['ads']); 
-  
-$ads_container= @unserialize(file_get_contents('./adsholder.txt'));
+  if (is_file('./adsholder.txt')){
+$ads_container= unserialize(file_get_contents('./adsholder.txt'));
+  }
+  else{
+      $ads_container= "";
+  }
+  $ads_save_checker=$ads_container;
   
     $showform_params = ['return_private' => "1", //эта переменная передается в форму на строке 204, если она заполнена данными, то они выведутся в нашей форме
                         'namereturn' => "",
@@ -203,7 +208,9 @@ $ads_container= @unserialize(file_get_contents('./adsholder.txt'));
        $showform_params['return_send_email'] = (isset($ads_container[$_GET['formreturn']]['allow_mails'])) ? 'checked=""' : '';//закончили заполнение массива
    }
 //  set_ads_cookie();
+   if ($ads_container!==$ads_save_checker){//ведем запись в файл только если что-то было изменено
   file_put_contents('./adsholder.txt', serialize($ads_container));
+   }
   show_form($showform_params); //теперь выводим на экран форму с параметрами. если они по дефолту, то ничего не возвращается в форму, если они заполнениы, то мы видим заполненную форму.
   show_table(); // выводим таблицу название-цена-имя-удалить.
   ?>

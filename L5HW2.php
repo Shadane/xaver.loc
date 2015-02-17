@@ -1,6 +1,7 @@
 <?php
 error_reporting(E_ALL | E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 ini_set('display_errors', 1);
+header('Content-type: text/html; charset=utf-8');
 
 function news_all() { //функция вывода всего списка новостей, ради интереса попробовал через for
     global $news;

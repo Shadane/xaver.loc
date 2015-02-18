@@ -2,6 +2,7 @@
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 ini_set('display_errors', 1);
 header('Content-type: text/html; charset=utf-8');
+session_start();
 
 $project_root=$_SERVER['DOCUMENT_ROOT'];
 $smarty_dir = $project_root.'/smarty';
@@ -48,8 +49,8 @@ $cities = array(
                   );
 
 
-
 if (is_file('./adsholder.txt')){
+    
 $ads_container= unserialize(file_get_contents('./adsholder.txt'));
   }
   else{
@@ -71,14 +72,23 @@ $ads_container= unserialize(file_get_contents('./adsholder.txt'));
                         'notice_field_is_empty'=> ""
                            );
   
-   if (isset($_POST['main_form_submit'])) { //блок проверки какая кнопка была нажата. Если Отправить, то передаем записи из поста в сессию
-       if (!empty($_POST['title'])){ 
+   if (isset($_POST['main_form_submit'])) { //блок проверки какая кнопка была нажата. Если Отправить, то передаем записи из поста в сессию 
+       if (($_POST['title'])){
+           if (isset($_SESSION['save_changes_id'])){ //при нажатой кнопке Отправить если в сессии сохранен ключ редактируемого обьявления, то сохраняем в него вместо создания нового.
+               $ads_container[$_SESSION['save_changes_id']]=$_POST; 
+               $showform_params['notice_edit_success'] = 'Объявление успешно отредактировано';
+               unset($_SESSION['save_changes_id']); //удаляем ключ в сессии, тем самым закрываем редактирование в сессии. Однако если после этого нажать f5 и повторно отправить, то ключа уже нет и создается новое. если делать редирект, то в коде много что менять.
+           } else {
            $ads_container[]=$_POST;
+           }
        }else {
            $showform_params['notice_field_is_empty']='Введите название';
        }
    }elseif (isset($_GET['delentry'])) {           //если нажата кнопка удалить
-       unset($ads_container[$_GET['delentry']]);
+       unset($ads_container[$_GET['delentry']]);  
+       if (isset($_SESSION['save_changes_id'])){  //вот тут приходится еще раз проверять и удалять, иначе потыкавшись можно будет найти баг.
+               unset($_SESSION['save_changes_id']); //можно это условие выписать отдельно для обеих кнопок по типу if button1 || button 2 pressed -> unset. для двух кнопок не стал так делать.
+       }
    }elseif (isset($_GET['formreturn'])) {        //если нажали на название обьявления, то заполняем массив $showform_params
      $return_id = $ads_container[$_GET['formreturn']];
        $showform_params = array(
@@ -94,6 +104,11 @@ $ads_container= unserialize(file_get_contents('./adsholder.txt'));
            'notice_field_is_empty'=> ""
                                 );
             $showform_params['return_send_email'] = (isset($return_id['allow_mails'])) ? 'checked=""' : '';//закончили заполнение массива
+            /* решил сохранять в сессии, но можно создать еще отдельно файл, 
+             * подумал что в файле с обьявлениями сохранять не очень опитимизированно будет,
+             * т.к лишние перезаписи.
+             */
+            $_SESSION['save_changes_id'] = $_GET['formreturn']; 
    }
    if ($ads_container!==$ads_save_checker){//ведем запись в файл только если что-то было изменено
   file_put_contents('./adsholder.txt', serialize($ads_container));

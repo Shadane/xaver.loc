@@ -83,14 +83,23 @@ function allow_mails(){
 
 
 function userfunc_query($query){
-    //функция выполняет запрос, используется для всех запросов.
+    //функция выполняет запрос, используется для всех запросов без вставки извне.
     global $ads_db, $result;
-//    $query = $ads_db-> escape_string($query); //не получается это включить, ошибка, явно что-то с переменными внутри запроса, хотелось бы услышать как правильно делать.
+    $query = $ads_db-> escape_string($query);//наверное не нужно это делать если все изнутри идет?
      if (!$result = $ads_db->query($query)) {
         die('Error during query[' . $ads_db->error . ']');
     }
 }
 
+//в следующей функции я хотел передавать $bind, но не получилось это сделать
+//function userfunc_prepare($query, $bind){
+//    $statement = $ads_db->prepare($query);
+//               $statement->bind_param($bind);
+//               $statement->execute();
+//               $statement->free_result();
+//}
+//        
+        
 function city_cat_load($param) {
     //заполняет массив city, затем вызывает сама себя с другим параметром и заполняет categories
     global $cities, $categories, $ads_db,$result;
@@ -146,41 +155,30 @@ $showform_params = array(  //решил его не загружать в бд, 
    if (isset($_POST['main_form_submit'])) { //блок проверки какая кнопка была нажата. Если Отправить, то передаем записи из поста в сессию     
        if (($_POST['title'])){
            if (isset($_SESSION['save_changes_id'])){ //при нажатой кнопке Отправить если в сессии сохранен ключ редактируемого обьявления, то сохраняем в него вместо создания нового.
-                                            userfunc_query('UPDATE `ads_container` SET
-                                            `private` = '.$_POST['private'].',
-                                            `seller_name` = "'.$_POST['seller_name'].'",
-                                            `email` = "'.$_POST['email'].'",
-                                            `allow_mails` = '.allow_mails().',
-                                            `phone` = "'.$_POST['phone'].'",
-                                            `location_id` = "'.$_POST['location_id'].'",
-                                            `category_id` = "'.$_POST['category_id'].'",
-                                            `title` = "'.$_POST['title'].'",
-                                            `description` = "'.$_POST['description'].'",
-                                            `price` = "'.$_POST['price'].'"
-                                             WHERE `id` = '.$_SESSION['save_changes_id'].';');
+                                      
                                             
-                        $showform_params['notice_edit_success'] = 'Объявление успешно отредактировано';
-                        unset($_SESSION['save_changes_id']); //удаляем ключ в сессии, тем самым закрываем редактирование в сессии. Однако если после этого нажать f5 и повторно отправить, то ключа уже нет и создается новое. если делать редирект, то в коде много что менять.
+               $statement = $ads_db->prepare('UPDATE `ads_container` SET `private` = ?, `seller_name` = ?, `email` = ?, `allow_mails` = ?, `phone` = ?, `location_id` = ?, `category_id` = ?, `title` = ?, `description` = ?, `price` = ? WHERE `id` = ?');
+               $statement->bind_param('ississssssi', $_POST['private'],$_POST['seller_name'], $_POST['email'],allow_mails(), $_POST['phone'],$_POST['location_id'],$_POST['category_id'],$_POST['title'],$_POST['description'],$_POST['price'],$_SESSION['save_changes_id']);
+               $statement->execute();
+               $statement->free_result();
+               $showform_params['notice_edit_success'] = 'Объявление успешно отредактировано';
+               unset($_SESSION['save_changes_id']); //удаляем ключ в сессии, тем самым закрываем редактирование в сессии. Однако если после этого нажать f5 и повторно отправить, то ключа уже нет и создается новое. если делать редирект, то в коде много что менять.
            } else {
-               userfunc_query('INSERT INTO `ads_container` (`private`, `seller_name`, `email`, `allow_mails`, `phone`, `location_id`, `category_id`, `title`, `description`, `price`)
-                                      VALUES ("'.$_POST['private'].'","'
-                                                .$_POST['seller_name'].'", "'
-                                                .$_POST['email'].'",'
-                                                .allow_mails().',"'
-                                                .$_POST['phone'].'", "'
-                                                .$_POST['location_id'].'", "'
-                                                .$_POST['category_id'].'","'
-                                                .$_POST['title'].'", "'
-                                                .$_POST['description'].'", "'
-                                                .$_POST['price'].'")');
-          
+               $statement = $ads_db->prepare('INSERT INTO `ads_container` (`private`, `seller_name`, `email`, `allow_mails`, `phone`, `location_id`, `category_id`, `title`, `description`, `price`) VALUES (?,?,?,?,?,?,?,?,?,?)');
+               $statement->bind_param('ississssss', $_POST['private'],$_POST['seller_name'], $_POST['email'],allow_mails(), $_POST['phone'],$_POST['location_id'],$_POST['category_id'],$_POST['title'],$_POST['description'],$_POST['price']);
+               $statement->execute();
+               $statement->free_result();
            }
        }else {
            $showform_params['notice_field_is_empty']='Введите название';
 
        }
    }elseif (isset($_GET['delentry'])) {           //если нажата кнопка удалить
-       userfunc_query('DELETE FROM `ads_container` WHERE ((`id` = "'.$_GET['delentry'].'"))');
+       $statement = $ads_db->prepare('DELETE FROM `ads_container` WHERE ((`id` = ?))');
+       $statement ->bind_param('i', $_GET['delentry']);
+       $statement ->execute();
+       $statement->free_result();
+       
        if (isset($_SESSION['save_changes_id'])){  //вот тут приходится еще раз проверять и удалять, иначе потыкавшись можно будет найти баг.
                unset($_SESSION['save_changes_id']); 
        }

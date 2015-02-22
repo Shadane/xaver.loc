@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<!--
+To change this license header, choose License Headers in Project Properties.
+To change this template file, choose Tools | Templates
+and open the template in the editor.
+-->
+<html>
+    <head>
+        <title>lession 7 homework</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body>
+    <form  method="post">
+        <div style="margin-left:220px;margin-top:10px"> 
+            <label><input type="radio" <?php echo $showform_params['return_private']; ?> value="1" name="private">Частное лицо</label>
+            <label style="margin-left:20px"><input type="radio" value="0" <?php echo $showform_params['return_company'];?> name="private">Компания</label>
+        </div>
+        <div style="margin-left:65px;margin-top:10px"> 
+            <label>Ваше имя</label>
+            <input style="margin-left:85px; width:230px" type="text" maxlength="40" value="<?php echo $showform_params['namereturn'] ?>" name="seller_name">
+        </div>
+        <div style="margin-left:60px;  margin-top:10px"> 
+            <label>Электронная почта</label>
+            <input style="margin-left:27px; width:230px;" type="text"  value="<?php echo $showform_params['email_return']; ?>" name="email" id="fld_email">
+        </div>
+        <div style="margin-left:217px;  margin-top:10px">
+            <label><input type="checkbox" <?php echo $showform_params['return_send_email']; ?>  value="1" name="allow_mails" id="allow_mails" class="form-input-checkbox">
+                Я не хочу получать вопросы по объявлению по e-mail</label> 
+        </div>
+        <div style="margin-left:60px;  margin-top:10px"> 
+            <label>Номер телефона</label> 
+            <input style="margin-left:46px; width:230px" type="text"  value="<?php echo $showform_params['phonereturn']; ?>" name="phone">
+        </div>
+        <div style="margin-left:60px;  margin-top:10px"> 
+            <label >Город</label> 
+            <select style="margin-left:118px; width:230px;height:22px" title="Выберите Ваш город" name="location_id"> 
+                <option>-- Выберите город --</option>
+                <option disabled="disabled">-- Города --</option>
+                <?php include_city_options($showform_params, $cities); ?>
+            </select>
+        </div>
+        <div style="margin-left:60px;  margin-top:10px"> 
+            <label for="fld_category_id" class="form-label">Категория</label> 
+            <select style="margin-left:89px; width:230px;height:22px" name="category_id">
+                <option value="">-- Выберите категорию --</option>
+                <?php include_category_options($showform_params, $categories);?>
+            </select> 
+        </div>
+        <div style="margin-left:60px;  margin-top:10px">
+            <label>Название объявления</label> 
+            <input style="margin-left:12px; width:230px;" type="text" maxlength="50" placeholder="<?php echo $showform_params['notice_title_is_empty'].'"value="'.$showform_params["returntitle"]; ?>" name="title">
+        </div>
+        <div style="margin-left:60px;  margin-top:10px"> 
+            <label style="position:absolute">Описание объявления</label>
+            <textarea style="margin-left:162px; width:230px;height:70px;" maxlength="3000" name="description" ><?php echo $showform_params["returndescription"]; ?></textarea></div>
+        <div style="margin-left:60px;  margin-top:10px"> 
+            <label >Цена</label>
+            <input style="margin-left:124px; width:230px" type="text" maxlength="9"  value="<?php echo $showform_params['returnprice']; ?>" name="price" >
+            <div>
+                <div style="margin-left:161px;  margin-top:10px"> 
+                    <input type="hidden" value="<?php echo $showform_params['return_id']; ?>" name="return_id" >
+                <input style="height:30px;font-weight: 700;color:white;border-radius: 3px;background: rgb(64,199,129);box-shadow: 0 -3px rgb(53,167,110) inset;transition: 0.2s;" type="submit" value="Отправить" name="main_form_submit"  >
+                </div>
+            </div>
+    </form>
+    <table method="post" style="border: 1px solid black; margin-top:30px;margin-left: 30px">
+            <tr>
+                <td> |  Название объявления </td>
+                <td>  |  Цена </td>
+                <td>  |  Имя </td>
+                <td>  |  Удалить | </td>
+            </tr>
+        </div>

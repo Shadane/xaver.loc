@@ -2,7 +2,42 @@
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 ini_set('display_errors', 1);
 header('Content-type: text/html; charset=utf-8');
-session_start();
+
+function button_processor($mode){
+    global $ads_container,$showform_params;
+    
+    if (isset($_POST['main_form_submit'])) {    //send button
+          if (($_POST['title'])){     
+                if ($mode == 'edit'){
+                        $ads_container[$_POST['return_id']]=$_POST; 
+                }else{
+                        $ads_container[]=$_POST;
+                }
+          }else{
+                $showform_params['notice_field_is_empty']='Введите название';
+          }
+    }elseif (isset($_GET['delentry'])) {           //delete button
+           unset($ads_container[$_GET['delentry']]); 
+    }elseif (isset($_GET['formreturn'])) {        //return_values button
+            $return = $ads_container[$_GET['formreturn']];
+            $showform_params = array(
+                   'return_private' => $return['private'],
+                   'namereturn' => $return['seller_name'],
+                   'email_return' => $return['email'],
+                   'phonereturn' => $return['phone'],
+                   'city' => $return['location_id'],
+                   'returncategory' => $return['category_id'],
+                   'returntitle' =>$return['title'],
+                   'returndescription' => $return['description'],
+                   'returnprice' => $return['price'],
+                   'return_id' => $_GET['formreturn'],
+                   'notice_field_is_empty'=> ""
+                                );
+            $showform_params['return_send_email'] = (isset($return['allow_mails'])) ? 'checked=""' : '';//закончили заполнение массива
+    }
+}
+
+
 
 $project_root=$_SERVER['DOCUMENT_ROOT'];
 $smarty_dir = $project_root.'/smarty';
@@ -18,11 +53,27 @@ $smarty->compile_dir = $smarty_dir.'/templates_c';
 $smarty->cache_dir = $smarty_dir.'/cache';
 $smarty->config_dir = $smarty_dir.'/configs';
 
+
+
+//filling arrays
 $radios=array('Частное лицо','Компания');
 
+$showform_params = array(
+                        'return_private' => '0', 
+                        'namereturn' => "",
+                        'email_return' => "",
+                        'return_send_email' => "",
+                        'phonereturn' => "",
+                        'city' => "",
+                        'returncategory' => "",
+                        'returntitle' => "",
+                        'returndescription' => "",
+                        'returnprice' => "0",
+                        'notice_field_is_empty'=> "",
+                        'return_id' => ""
+                           );
 
-
-$cities = array(
+ $cities = array(
            '641780' => 'Новосибирск', 
            '641490' => 'Барабинск', 
            '641510' => 'Бердск', 
@@ -48,74 +99,41 @@ $cities = array(
         'Для бизнеса' => array('116' => 'Готовый бизнес', '40' => 'Оборудование для бизнеса')
                   );
 
-
+ 
+ 
+ 
+//Attempt to open file
 if (is_file('./adsholder.txt')){
-    
 $ads_container= unserialize(file_get_contents('./adsholder.txt'));
-  }
-  else{
+  }else{
       $ads_container= "";
   }
-  $ads_save_checker=$ads_container;
+$ads_save_checker=$ads_container;
+
+
+
+
+  //button processing
+  if (isset($_POST['return_id'])  &&  is_numeric($_POST['return_id'])){
+        //edit_MODE
+      button_processor('edit');
+  }else{ 
+    //normal_MODE
+      button_processor('normal');
+  }  
   
-    $showform_params = array(
-                        'return_private' => "0", 
-                        'namereturn' => "",
-                        'email_return' => "",
-                        'return_send_email' => "",
-                        'phonereturn' => "",
-                        'city' => "",
-                        'returncategory' => "",
-                        'returntitle' => "",
-                        'returndescription' => "",
-                        'returnprice' => "0",
-                        'notice_field_is_empty'=> ""
-                           );
   
-   if (isset($_POST['main_form_submit'])) { //блок проверки какая кнопка была нажата. Если Отправить, то передаем записи из поста в сессию 
-       if (($_POST['title'])){
-           if (isset($_SESSION['save_changes_id'])){ //при нажатой кнопке Отправить если в сессии сохранен ключ редактируемого обьявления, то сохраняем в него вместо создания нового.
-               $ads_container[$_SESSION['save_changes_id']]=$_POST; 
-               $showform_params['notice_edit_success'] = 'Объявление успешно отредактировано';
-               unset($_SESSION['save_changes_id']); //удаляем ключ в сессии, тем самым закрываем редактирование в сессии. Однако если после этого нажать f5 и повторно отправить, то ключа уже нет и создается новое. если делать редирект, то в коде много что менять.
-           } else {
-           $ads_container[]=$_POST;
-           }
-       }else {
-           $showform_params['notice_field_is_empty']='Введите название';
-       }
-   }elseif (isset($_GET['delentry'])) {           //если нажата кнопка удалить
-       unset($ads_container[$_GET['delentry']]);  
-       if (isset($_SESSION['save_changes_id'])){  //вот тут приходится еще раз проверять и удалять, иначе потыкавшись можно будет найти баг.
-               unset($_SESSION['save_changes_id']); //можно это условие выписать отдельно для обеих кнопок по типу if button1 || button 2 pressed -> unset. для двух кнопок не стал так делать.
-       }
-   }elseif (isset($_GET['formreturn'])) {        //если нажали на название обьявления, то заполняем массив $showform_params
-     $return_id = $ads_container[$_GET['formreturn']];
-       $showform_params = array(
-           'return_private' => $return_id['private'],
-           'namereturn' => $return_id['seller_name'],
-           'email_return' => $return_id['email'],
-           'phonereturn' => $return_id['phone'],
-           'city' => $return_id['location_id'],
-           'returncategory' => $return_id['category_id'],
-           'returntitle' =>$return_id['title'],
-           'returndescription' => $return_id['description'],
-           'returnprice' => $return_id['price'],
-           'notice_field_is_empty'=> ""
-                                );
-            $showform_params['return_send_email'] = (isset($return_id['allow_mails'])) ? 'checked=""' : '';//закончили заполнение массива
-            /* решил сохранять в сессии, но можно создать еще отдельно файл, 
-             * подумал что в файле с обьявлениями сохранять не очень опитимизированно будет,
-             * т.к лишние перезаписи.
-             */
-            $_SESSION['save_changes_id'] = $_GET['formreturn']; 
-   }
+  
+  //saving to file
    if ($ads_container!==$ads_save_checker){//ведем запись в файл только если что-то было изменено
   file_put_contents('./adsholder.txt', serialize($ads_container));
    }
+
+   
+   
 $smarty->assign('radios',$radios);
 $smarty->assign('ads_container',$ads_container);
 $smarty->assign('cities',$cities);
 $smarty->assign('categories',$categories);
 $smarty->assign('showform_params', $showform_params);
-$smarty->display('index.tpl');
+$smarty->display('lesson8homework.tpl');

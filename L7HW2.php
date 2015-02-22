@@ -2,8 +2,50 @@
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 ini_set('display_errors', 1);
 header('Content-type: text/html; charset=utf-8');
-session_start();
+
+
 //блоки
+function button_processor($mode){
+    global $ads_container,$showform_params;
+    
+    if (isset($_POST['main_form_submit'])) {    //send button
+          if (($_POST['title'])){     
+                if ($mode == 'edit'){
+                        $ads_container[$_POST['return_id']]=$_POST; 
+                }else{
+                        $ads_container[]=$_POST;
+                }
+          }else{
+                $showform_params['notice_field_is_empty']='Введите название';
+          }
+    }elseif (isset($_GET['delentry'])) {           //delete button
+           unset($ads_container[$_GET['delentry']]); 
+    }elseif (isset($_GET['formreturn'])) {        //return_values button
+            $return = $ads_container[$_GET['formreturn']];
+            $showform_params = array(
+                   'return_private' => "",
+                   'return_company' =>"",
+                   'namereturn' => $return['seller_name'],
+                   'email_return' => $return['email'],
+                   'phonereturn' => $return['phone'],
+                   'city' => $return['location_id'],
+                   'returncategory' => $return['category_id'],
+                   'returntitle' =>$return['title'],
+                   'returndescription' => $return['description'],
+                   'returnprice' => $return['price'],
+                   'return_id' => $_GET['formreturn'],
+                   'notice_field_is_empty'=> ""
+                                );
+            if ($return['private']=='1'){
+                    $showform_params['return_private'] = 'checked=""';
+            }else{
+                    $showform_params['return_company'] = 'checked=""';
+            }
+            $showform_params['return_send_email'] = (isset($return['allow_mails'])) ? 'checked=""' : '';//закончили заполнение массива
+}
+}
+
+
 
 function include_city_options(){
     global $cities,$showform_params;
@@ -12,6 +54,8 @@ function include_city_options(){
         echo ' <option data-coords=",,"' . $selected . ' value="' . $key . '">' . $value . '</option>';
     }
 }
+
+
 
 function include_category_options(){
     global $categories,$showform_params;
@@ -24,16 +68,12 @@ function include_category_options(){
     }
 }
 
-function set_ads_cookie(){
-             global $ads_container;
-             unset($_COOKIE['ads']);
-             setcookie('ads', "", time()-3600);
-             setcookie('ads', serialize($ads_container), time()+3600*24*7);
-}
+
 
 function show_table_contents(){ //блок вывода таблицы по шаблону 
+// Вывод таблицы из массива.
    global $ads_container;
-    if ($ads_container) {     
+    if (!empty($ads_container)) {     
         foreach ($ads_container as $key => $array) {
                 echo '<tr>';
                 echo '<td> |  <a href="?formreturn=' . $key . '"> ' . $array["title"] . '</td>';
@@ -42,11 +82,14 @@ function show_table_contents(){ //блок вывода таблицы по ша
                 echo '<td>  |  <a href="?delentry=' . $key . '">Удалить</a> |</td>';
                 echo '</tr>';
             }
-        }    
+        }
+    
     ?>
-                    </table>
+                                      </table>
     <?php
 }
+
+
 
 function show_form($showform_params) { 
 ?>
@@ -67,7 +110,7 @@ function show_form($showform_params) {
         </div>
         <div style="margin-left:60px;  margin-top:10px"> 
             <label>Электронная почта</label>
-            <input style="margin-left:27px; width:230px;" type="text"  value=" <?php echo $showform_params["email_return"]; ?> " name="email" id="fld_email">
+            <input style="margin-left:27px; width:230px;" type="text"  value="<?php echo $showform_params["email_return"]; ?> " name="email" id="fld_email">
         </div>
         <div style="margin-left:217px;  margin-top:10px">
             <label><input type="checkbox"<?php echo $showform_params["return_send_email"]; ?>  value="1" name="allow_mails" id="allow_mails" class="form-input-checkbox">
@@ -105,6 +148,7 @@ function show_form($showform_params) {
             <input style="margin-left:124px; width:230px" type="text" maxlength="9"  value="<?php echo $showform_params["returnprice"]; ?> " name="price" >
             <div>
                 <div style="margin-left:161px;  margin-top:10px"> 
+                    <input type="hidden" value="<?php echo $showform_params["return_id"]; ?>" name="return_id" >
                 <input style="height:30px;font-weight: 700;color:white;border-radius: 3px;background: rgb(64,199,129);box-shadow: 0 -3px rgb(53,167,110) inset;transition: 0.2s;" type="submit" value="Отправить" name="main_form_submit"  >
                 </div>
             </div>
@@ -119,6 +163,16 @@ function show_form($showform_params) {
         </div>
         <?php show_table_contents();
 }
+
+function set_ads_cookie(){
+             global $ads_container;
+             unset($_COOKIE['ads']);
+             setcookie('ads', "", time()-3600);
+             setcookie('ads', serialize($ads_container), time()+3600*24*7);
+}
+
+
+
 //конец блоков , запись массивов
 
 $showform_params = array(
@@ -133,7 +187,8 @@ $showform_params = array(
                         'returntitle' => "",
                         'returndescription' => "",
                         'returnprice' => "0",
-                        'notice_field_is_empty'=> ""
+                        'notice_field_is_empty'=> "",
+                        'return_id' => ""
                            );
 
  $cities = array(
@@ -164,57 +219,26 @@ $showform_params = array(
 
 //конец записи массивов, начало логики
 if (isset($_COOKIE['ads'])){
-  $ads_container=  unserialize($_COOKIE['ads']); 
+  $ads_container =  unserialize($_COOKIE['ads']); 
 }else{
   $ads_container="";  
 }
-  $ads_save_checker=$ads_container;
+  $ads_save_checker = $ads_container;
+
   
-if (isset($_POST['main_form_submit'])) { //блок проверки какая кнопка была нажата. Если Отправить, то передаем записи из поста в сессию 
-       if (($_POST['title'])){
-           if (isset($_SESSION['save_changes_id'])){ //при нажатой кнопке Отправить если в сессии сохранен ключ редактируемого обьявления, то сохраняем в него вместо создания нового.
-               $ads_container[$_SESSION['save_changes_id']]=$_POST; 
-               unset($_SESSION['save_changes_id']); //удаляем ключ в сессии, тем самым закрываем редактирование в сессии. Однако если после этого нажать f5 и повторно отправить, то ключа уже нет и создается новое. если делать редирект, то в коде много что менять придется.
-           } else {
-           $ads_container[]=$_POST;
-           }
-       }else {
-           $showform_params['notice_field_is_empty']='Введите название';
-       }
-}elseif (isset($_GET['delentry'])) {           //если нажата кнопка удалить
-       unset($ads_container[$_GET['delentry']]);  
-       if (isset($_SESSION['save_changes_id'])){  //вот тут приходится еще раз проверять и удалять, иначе потыкавшись можно будет найти баг.
-               unset($_SESSION['save_changes_id']); //можно это условие выписать отдельно для обеих кнопок по типу if button1 || button 2 pressed -> unset. для двух кнопок не стал так делать.
-       }
-}elseif (isset($_GET['formreturn'])) {        //если нажали на название обьявления, то заполняем массив $showform_params
-     $return_id = $ads_container[$_GET['formreturn']];
-       $showform_params = array(
-           'return_private' => "",
-           'return_company' =>"",
-           'namereturn' => $return_id['seller_name'],
-           'email_return' => $return_id['email'],
-           'phonereturn' => $return_id['phone'],
-           'city' => $return_id['location_id'],
-           'returncategory' => $return_id['category_id'],
-           'returntitle' =>$return_id['title'],
-           'returndescription' => $return_id['description'],
-           'returnprice' => $return_id['price'],
-           'notice_field_is_empty'=> ""
-                                );
-             if ($return_id['private']=='1'){
-                 $showform_params['return_private'] = 'checked=""';
-             }else{
-                 $showform_params['return_company'] = 'checked=""';
-             }
-             
-            $showform_params['return_send_email'] = (isset($return_id['allow_mails'])) ? 'checked=""' : '';//закончили заполнение массива
-            /* решил сохранять ключ редактируемого объявления в сессии, но можно создать еще отдельно файл, 
-             * подумал что в уже существующем файле с обьявлениями сохранять не очень опитимизированно будет,
-             * т.к лишние перезаписи.
-             */
-            $_SESSION['save_changes_id'] = $_GET['formreturn']; 
-   }
-if ($ads_save_checker!==$ads_container){
+  
+  //button processing
+  if (isset($_POST['return_id'])  &&  is_numeric($_POST['return_id'])){
+    //edit_MODE. Заметка - если не сделать такую проверку, то на нулевом значении массива (ads_container[0]) будут косяки, т.к empty() считает это за false.
+      button_processor('edit');
+  }else{ 
+    //normal_MODE
+      button_processor('normal');
+  }  
+  
+  
+  
+if ($ads_save_checker !== $ads_container){
   set_ads_cookie();
 }
    //конец логики, вывод

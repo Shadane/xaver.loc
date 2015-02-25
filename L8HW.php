@@ -31,7 +31,7 @@ function adsReturn($ads_container, $showform_params, $return_id){
                    'returntitle' =>$return['title'],
                    'returndescription' => $return['description'],
                    'returnprice' => $return['price'],
-                   'return_id' => $_GET['formreturn'],
+                   'return_id' => $return_id,
                    'notice_title_is_empty'=> ""
                                 );
             $showform_params['return_send_email'] = (isset($return['allow_mails'])) ? 'checked=""' : '';

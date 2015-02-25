@@ -37,14 +37,27 @@ and open the template in the editor.
             <select style="margin-left:118px; width:230px;height:22px" title="Выберите Ваш город" name="location_id"> 
                 <option>-- Выберите город --</option>
                 <option disabled="disabled">-- Города --</option>
-                <?php include_city_options($showform_params, $cities); ?>
+               <?php 
+                foreach ($cities as $city_id => $city_name) {
+                    $selected = ($city_id == $showform_params["city"]) ? 'selected=""' : '';
+                        echo ' <option data-coords=",,"' . $selected . ' value="' . $city_id . '">' . $city_name . '</option>';
+                }
+               ?>
             </select>
         </div>
         <div style="margin-left:60px;  margin-top:10px"> 
             <label for="fld_category_id" class="form-label">Категория</label> 
             <select style="margin-left:89px; width:230px;height:22px" name="category_id">
                 <option value="">-- Выберите категорию --</option>
-                <?php include_category_options($showform_params, $categories);?>
+                <?php 
+                 foreach ($categories as $category => $subarray) { //цикл для вывода категорий и субкатерогий в выпадающем списке
+                      echo '<optgroup label="' . $category . '">';
+                        foreach ($subarray as $key => $subcatname) {
+                          $selected = ($key == $showform_params["returncategory"]) ? 'selected=""' : '';
+                          echo '<option ' . $selected . ' value="' . $key . '">' . $subcatname;
+                          }
+                 }
+                ?>
             </select> 
         </div>
         <div style="margin-left:60px;  margin-top:10px">
@@ -72,3 +85,18 @@ and open the template in the editor.
                 <td>  |  Удалить | </td>
             </tr>
         </div>
+<?php
+if (!empty($ads_container)) {     
+        foreach ($ads_container as $key => $array) {
+                echo '<tr>';
+                echo '<td> |  <a href="?formreturn=' . $key . '"> ' . $array["title"] . '</td>';
+                echo '<td>  |  ' . $array['price'] . '</td>';
+                echo '<td>  |  ' . $array['seller_name'] . '</td>';
+                echo '<td>  |  <a href="?delentry=' . $key . '">Удалить</a> |</td>';
+                echo '</tr>';
+        }
+    }
+?>
+    </table>
+           </body>
+           </html>

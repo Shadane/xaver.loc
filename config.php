@@ -2,6 +2,6 @@
 return array(
     'server_name'=> 'localhost',
     'user_name' => 'root',
-    'password'=> '123',
+    'password'=> '',
     'database' => 'ads'
 );

@@ -1,9 +1,11 @@
 <?php
-session_start();
+error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
+ini_set('display_errors', 1);
 header('Content-type: text/html; charset=utf-8');
-if (isset($_POST['server_name'],$_POST['user_name'],$_POST['password'],$_POST['database'],$_POST['install'])){
-    if ($_POST['server_name']&&$_POST['user_name']&&$_POST['database']){
-   $db = new mysqli($_POST['server_name'], $_POST['user_name'], $_POST['password']);//устанавливаем соденинение
+if (!$config_arr = include('./config.php')){
+        die('Unable to run configuration file');
+}
+   $db = new mysqli($config_arr['server_name'],$config_arr['user_name'],$config_arr['password'],$config_arr['database']);//устанавливаем соденинение
         if ( $db -> connect_errno > 0 ){
              die('Unable to connect'.$db->connect_error());
         }
@@ -12,13 +14,6 @@ if (isset($_POST['server_name'],$_POST['user_name'],$_POST['password'],$_POST['d
    }
 
 $query="
-DROP DATABASE IF EXISTS `".$_POST['database']."`;
-CREATE DATABASE `".$_POST['database']."` /*!40100 DEFAULT CHARACTER SET utf8 */;
-USE `".$_POST['database']."`;
-SET NAMES utf8;
-SET time_zone = '+00:00';
-SET foreign_key_checks = 0;
-SET sql_mode = 'NO_AUTO_VALUE_ON_ZERO';
 DROP TABLE IF EXISTS `ads_container`;
 CREATE TABLE `ads_container` (
   `id` smallint(6) NOT NULL AUTO_INCREMENT,
@@ -115,10 +110,10 @@ INSERT INTO `cities` (`city_id`, `city_name`) VALUES
 ('641970',	'Черепаново')";
 $query=  explode(';', $query);
 
-foreach ($query as $key=>$value){
-//    echo $key.'</br>'.$value.'</br>';
-
-   $db->query($value);
+foreach ($query as $number=>$actual_query){
+   if (!$db->query($actual_query)){
+       die('Error during query: '.$db->error);
+   }
 }
 $db->close();
 if (!is_dir('./smarty/templates')){
@@ -126,42 +121,19 @@ mkdir('./smarty/templates');
 }else{
     echo 'директория уже существует, переношу файл';
 }
-if (is_file('./smarty/templates/index.tpl')){
-    rename('./smarty/templates/index.tpl', './smarty/templates/index_backup.tpl');
-    echo '</br> старый файл /smarty/templates/index.tpl переименован в /smarty/templates/indexxbackup.php';
-}
-if (is_file('./index.php')){
-rename('./index.php', './indexxbackup.php') or die('не удалось переместить файл index.tpl');
-echo '</br> старый файл index.php переименован в indexxbackup.php';
-}
 
-if (is_file('./index.tpl')){
-copy('./index.tpl', './smarty/templates/index.tpl') or die('не удалось переместить файл index.tpl');
-echo '</br> файл index.tpl успешно скопирован в /smarty/templates';
+
+if (is_file('./L9MySQLi.tpl')){
+copy('./L9MySQLi.tpl', './smarty/templates/L9MySQLi.tpl') or die('не удалось переместить файл index.tpl');
 }
 
 
+echo '<div style="width: 300px;align= right"><a href=/L9MySQLi.php>Установка завершена успешно!</a></div>';
 
-
-if (is_file('./Lesson9HW_MYSQLi.php')){
-    copy('./Lesson9HW_MYSQLi.php', './index.php') or die('не удалось переименовать файл L9HW.php в index.php');
-echo '</br> файл L9HW.php успешно скопирован в index.php';
-}
-
-echo '<div style="width: 300px;align= right"><a href=/index.php>Установка завершена успешно!</a></div>';
-
-$_SESSION['server_name']=$_POST['server_name'];
-$_SESSION['user_name']=$_POST['user_name'];
-$_SESSION['password']=$_POST['password'];
-$_SESSION['database']=$_POST['database'];
-
-exit;
-}else echo 'Необходимо заполнить поля';
-}
 
 
 ?>
-<html>
+<!--<html>
     <form style="" method="post">
         <label>Server name:</label></br>
         <input type="text" name="server_name">
@@ -177,4 +149,4 @@ exit;
         </br></br>
         <input type="submit" name="install" value="install">
     </form>
-</html>
+</html>-->

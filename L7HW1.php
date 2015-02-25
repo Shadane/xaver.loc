@@ -13,7 +13,7 @@ function adsSave($ads_container, $sent_entry){
 }
 
 
-function adsDelete($ads_container, $delete_id){ //обосновано ли использование такой функции?)
+function adsDelete($ads_container, $delete_id){ 
     unset($ads_container[$delete_id]); 
     return $ads_container;
 }
@@ -32,7 +32,7 @@ function adsReturn($ads_container, $showform_params, $return_id){
                    'returntitle' =>$return['title'],
                    'returndescription' => $return['description'],
                    'returnprice' => $return['price'],
-                   'return_id' => $_GET['formreturn'],
+                   'return_id' => $return_id,
                    'notice_title_is_empty'=> ""
                                 );
             if ($return['private']=='1'){

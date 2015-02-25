@@ -2,6 +2,7 @@
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 ini_set('display_errors', 1);
 header('Content-type: text/html; charset=utf-8');
+if (isset($_POST['install'])){
 if (!$config_arr = include('./config.php')){
         die('Unable to run configuration file');
 }
@@ -118,24 +119,27 @@ foreach ($query as $number=>$actual_query){
 $db->close();
 if (!is_dir('./smarty/templates')){
 mkdir('./smarty/templates');
-}else{
-    echo 'директория уже существует, переношу файл';
 }
 
 
 if (is_file('./L9MySQLi.tpl')){
-copy('./L9MySQLi.tpl', './smarty/templates/L9MySQLi.tpl') or die('не удалось переместить файл index.tpl');
+copy('./L9MySQLi.tpl', './smarty/templates/L9MySQLi.tpl') or die('не удалось переместить файл L9MySQLi.tpl');
+}
+if (is_file('./L9HW.tpl')){
+copy('./L9HW.tpl', './smarty/templates/L9HW.tpl') or die('не удалось переместить файл L9MySQLi.tpl');
 }
 
 
-echo '<div style="width: 300px;align= right"><a href=/L9MySQLi.php>Установка завершена успешно!</a></div>';
 
+echo '<div style="width: 300px;align= right"><a href=/L9HW.php>Установка завершена успешно! MySQL</a></div>';
+echo '<div style="width: 300px;align= right"><a href=/L9MySQLi.php>Установка завершена успешно! MySQLi</a></div>';
+}
 
 
 ?>
-<!--<html>
+<html>
     <form style="" method="post">
-        <label>Server name:</label></br>
+<!--        <label>Server name:</label></br>
         <input type="text" name="server_name">
         </br></br>
          <label>User name:</label></br>
@@ -146,7 +150,7 @@ echo '<div style="width: 300px;align= right"><a href=/L9MySQLi.php>Устано�
         </br></br>
          <label>Database:</label></br>
         <input type="text" name="database">
-        </br></br>
-        <input type="submit" name="install" value="install">
+        </br></br>-->
+        <input type="submit" name="install" value="Установить таблицу в базу данных">
     </form>
-</html>-->
+</html>

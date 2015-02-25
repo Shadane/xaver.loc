@@ -47,7 +47,7 @@
     </div>
     <div style="margin-left:60px;  margin-top:10px">
         <label>Название объявления</label> 
-        <input style="margin-left:12px; width:230px;" type="text" maxlength="30" placeholder="{$showform_params.notice_field_is_empty}" value="{$showform_params.returntitle|strip}" name="title">
+        <input style="margin-left:12px; width:230px;" type="text" maxlength="30" placeholder="{$showform_params.notice_title_is_empty}" value="{$showform_params.returntitle|strip}" name="title">
     </div>
     <div style="margin-left:60px;  margin-top:10px"> 
         <label style="position:absolute">Описание объявления</label>

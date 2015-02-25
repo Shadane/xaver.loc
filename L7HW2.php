@@ -49,9 +49,7 @@ function showForm($ads_container, $showform_params, $cities, $categories){ //б�
           include './adsform.html';
 }
 
-function set_ads_cookie(){
-             global $ads_container;
-             unset($_COOKIE['ads']);
+function set_ads_cookie($ads_container){
              setcookie('ads', "", time()-3600);
              setcookie('ads', serialize($ads_container), time()+3600*24*7);
 }
@@ -128,7 +126,7 @@ if (isset($_COOKIE['ads'])){
   
   
 if ($ads_save_checker !== $ads_container){
-  set_ads_cookie();
+  set_ads_cookie($ads_container);
 }
    //вывод
    showForm($ads_container, $showform_params, $cities, $categories);

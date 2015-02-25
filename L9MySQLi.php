@@ -118,11 +118,11 @@ function ads_loadfromsql( $ads_db ) {
 
 //конец функций
 if (!$config_arr = include('./config.php')){
-        die('Unable to run configuration file <a href="./install.php">install it </a>');
+        die('Unable to run configuration file');
 }
 $ads_db = new mysqli($config_arr['server_name'],$config_arr['user_name'],$config_arr['password'],$config_arr['database']);//устанавливаем соденинение
         if ( $ads_db -> connect_errno > 0 ){
-             die('Unable to connect'.$ads_db->connect_error());
+             die('Unable to connect'.$ads_db->connect_error().'<a href="./install.php">You might want to install it first </a>');
         }
 if (!$ads_db ->set_charset('utf8')){
        die('Error while applying utf8 charset:  '.$ads_db->error);

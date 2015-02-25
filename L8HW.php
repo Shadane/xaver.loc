@@ -3,23 +3,24 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 ini_set('display_errors', 1);
 header('Content-type: text/html; charset=utf-8');
 
-function button_processor($mode){
-    global $ads_container,$showform_params;
-    
-    if (isset($_POST['main_form_submit'])) {    //send button
-          if (($_POST['title'])){     
-                if ($mode == 'edit'){
-                        $ads_container[$_POST['return_id']]=$_POST; 
-                }else{
-                        $ads_container[]=$_POST;
-                }
-          }else{
-                $showform_params['notice_field_is_empty']='Введите название';
-          }
-    }elseif (isset($_GET['delentry'])) {           //delete button
-           unset($ads_container[$_GET['delentry']]); 
-    }elseif (isset($_GET['formreturn'])) {        //return_values button
-            $return = $ads_container[$_GET['formreturn']];
+function adsSave($ads_container, $sent_entry){  
+    if ( isset( $sent_entry['return_id'] )  &&  is_numeric( $sent_entry['return_id'] ) ){
+            $ads_container[$sent_entry['return_id']]=$sent_entry; 
+    }else{
+            $ads_container[]=$sent_entry;
+    }
+    return $ads_container;
+}
+
+
+function adsDelete($ads_container, $delete_id){ //обосновано ли использование такой функции?)
+    unset($ads_container[$delete_id]); 
+    return $ads_container;
+}
+
+
+function adsReturn($ads_container, $showform_params, $return_id){
+            $return = $ads_container[$return_id];
             $showform_params = array(
                    'return_private' => $return['private'],
                    'namereturn' => $return['seller_name'],
@@ -31,12 +32,12 @@ function button_processor($mode){
                    'returndescription' => $return['description'],
                    'returnprice' => $return['price'],
                    'return_id' => $_GET['formreturn'],
-                   'notice_field_is_empty'=> ""
+                   'notice_title_is_empty'=> ""
                                 );
-            $showform_params['return_send_email'] = (isset($return['allow_mails'])) ? 'checked=""' : '';//закончили заполнение массива
-    }
+            $showform_params['return_send_email'] = (isset($return['allow_mails'])) ? 'checked=""' : '';
+            
+            return $showform_params;
 }
-
 
 
 $project_root=$_SERVER['DOCUMENT_ROOT'];
@@ -69,7 +70,7 @@ $showform_params = array(
                         'returntitle' => "",
                         'returndescription' => "",
                         'returnprice' => "0",
-                        'notice_field_is_empty'=> "",
+                        'notice_title_is_empty'=> "",
                         'return_id' => ""
                            );
 
@@ -112,15 +113,18 @@ $ads_save_checker=$ads_container;
 
 
 
-
   //button processing
-  if (isset($_POST['return_id'])  &&  is_numeric($_POST['return_id'])){
-        //edit_MODE
-      button_processor('edit');
-  }else{ 
-    //normal_MODE
-      button_processor('normal');
-  }  
+   if ( isset($_POST['main_form_submit']) ) {    //send button
+          if ( $_POST['title'] ){
+             $ads_container = adsSave( $ads_container, $_POST );
+          }else{
+                $showform_params['notice_title_is_empty']='Введите название';
+          }
+   }elseif ( isset($_GET['delentry']) ) {           //delete button
+         $ads_container = adsDelete( $ads_container, $_GET['delentry'] );
+   }elseif ( isset($_GET['formreturn']) ) {         //return values to form button
+         $showform_params = adsReturn( $ads_container, $showform_params, $_GET['formreturn'] );
+   }
   
   
   

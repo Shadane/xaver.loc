@@ -45,49 +45,8 @@ function adsReturn($ads_container, $showform_params, $return_id){
             return $showform_params;
 }
 
-
-
-
-function include_city_options($showform_params, $cities){
-    foreach ($cities as $key => $value) {
-        $selected = ($key == $showform_params["city"]) ? 'selected=""' : '';
-        echo ' <option data-coords=",,"' . $selected . ' value="' . $key . '">' . $value . '</option>';
-    }
-}
-
-
-
-function include_category_options($showform_params, $categories){
-    foreach ($categories as $category => $subarray) { //цикл для вывода категорий и субкатерогий в выпадающем списке
-        echo '<optgroup label="' . $category . '">';
-        foreach ($subarray as $key => $subcatname) {
-            $selected = ($key == $showform_params["returncategory"]) ? 'selected=""' : '';
-            echo '<option ' . $selected . ' value="' . $key . '">' . $subcatname;
-        }
-    }
-}
-
-function showTable($ads_container){
-    if (!empty($ads_container)) {     
-        foreach ($ads_container as $key => $array) {
-                echo '<tr>';
-                echo '<td> |  <a href="?formreturn=' . $key . '"> ' . $array["title"] . '</td>';
-                echo '<td>  |  ' . $array['price'] . '</td>';
-                echo '<td>  |  ' . $array['seller_name'] . '</td>';
-                echo '<td>  |  <a href="?delentry=' . $key . '">Удалить</a> |</td>';
-                echo '</tr>';
-        }
-    }
-}
-
 function showForm($ads_container, $showform_params, $cities, $categories){ //блок вывода таблицы по шаблону 
-          include './adsform.html'; //тут получилось, include_category_options, include_city_options - вызываются из файла.
-          showTable($ads_container);
- ?>
-           </table>
-           </body>
-           </html>
-<?php    
+          include './adsform.html';
 }
 
 

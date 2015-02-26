@@ -4,6 +4,9 @@ ini_set('display_errors', 1);
 header('Content-type: text/html; charset=utf-8');
 //начало функций
 function adsSQLSave( $sent_entry, $ads_db){  
+    foreach ($sent_entry as $key => $value){ 
+        $sent_entry[$key] = $ads_db->real_escape_string($value); //+ в шаблоне сделал вывод с |escape:'htmlall'
+    }
     if ( isset( $sent_entry['return_id'] )  &&  is_numeric( $sent_entry['return_id'] ) ){
         userfunc_query( $ads_db, 'UPDATE `ads_container` SET
                                             `private` = '.$sent_entry['private'].',
@@ -36,6 +39,7 @@ function adsSQLSave( $sent_entry, $ads_db){
 
 
 function adsSQLDelete( $delete_id, $ads_db){
+            $delete_id = $ads_db->real_escape_string($delete_id);
              userfunc_query($ads_db, 'DELETE FROM `ads_container` WHERE ((`id` = "'.$delete_id.'"))')
                     or die('and error duing delete query: '.$ads_db->error);
 }

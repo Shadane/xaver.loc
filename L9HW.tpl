@@ -73,15 +73,14 @@
                 <td>  |  Удалить | </td>
            </tr>
          </div> 
-         <div style="margin-left:111px;  margin-top:10px; height: 30px"> 
-            {$showform_params.notice_edit_success}
+         <div style="margin-left:111px;  margin-top:10px"> 
          </div>
 {if $ads_container}
     {foreach from=$ads_container key=key item=arr}
         <tr>
-            <td> |  <a href="?formreturn={$key}"> {$arr.title}</a></td>
-            <td>  |  {$arr.price}</td>
-            <td>  |  {$arr.seller_name}</td>
+            <td> |  <a href="?formreturn={$key}"> {$arr.title|escape:'htmlall'}</a></td>
+            <td>  |  {$arr.price|escape:'htmlall'}</td>
+            <td>  |  {$arr.seller_name|escape:'htmlall'}</td>
             <td>  |  <a href="?delentry={$key}">Удалить</a> |</td>
             </tr>  
     {/foreach}

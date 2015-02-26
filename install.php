@@ -17,7 +17,7 @@ if (!$config_arr = include('./config.php')){
 $query="
 DROP TABLE IF EXISTS `ads_container`;
 CREATE TABLE `ads_container` (
-  `id` smallint(6) NOT NULL AUTO_INCREMENT,
+  `id` smallint(6) NOT NULL AUTO_INCREMENT UNIQUE KEY,
   `private` tinyint(1) NOT NULL,
   `seller_name` varchar(20) NOT NULL,
   `email` varchar(40) NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE `ads_container` (
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 DROP TABLE IF EXISTS `categories`;
 CREATE TABLE `categories` (
-  `id` tinyint(4) NOT NULL AUTO_INCREMENT,
+  `id` tinyint(4) NOT NULL AUTO_INCREMENT UNIQUE KEY,
   `cat_name` varchar(20) NOT NULL,
   `subcat_id` varchar(3) NOT NULL,
   `subcat_name` varchar(30) NOT NULL,
@@ -94,7 +94,7 @@ INSERT INTO `categories` (`id`, `cat_name`, `subcat_id`, `subcat_name`) VALUES
 (53,	'Для бизнеса',	'40',	'Оборудование для бизнеса');
 DROP TABLE IF EXISTS `cities`;
 CREATE TABLE `cities` (
-  `city_id` char(6) NOT NULL,
+  `city_id` char(6) NOT NULL UNIQUE KEY,
   `city_name` varchar(20) NOT NULL
 ) ENGINE=MyISAM DEFAULT CHARSET=utf8;
 INSERT INTO `cities` (`city_id`, `city_name`) VALUES

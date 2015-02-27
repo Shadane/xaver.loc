@@ -8,19 +8,28 @@ function adsSQLSave( $sent_entry, $ads_db){
         $sent_entry[$key] = $ads_db->real_escape_string($value); //+ в шаблоне сделал вывод с |escape:'htmlall'
     }
     if ( isset( $sent_entry['return_id'] )  &&  is_numeric( $sent_entry['return_id'] ) ){
-        userfunc_query( $ads_db, 'UPDATE `ads_container` SET
-                                            `private` = '.$sent_entry['private'].',
-                                            `seller_name` = "'.$sent_entry['seller_name'].'",
-                                            `email` = "'.$sent_entry['email'].'",
-                                            `allow_mails` = "'.isset($sent_entry['allow_mails']).'",
-                                            `phone` = "'.$sent_entry['phone'].'",
-                                            `location_id` = "'.$sent_entry['location_id'].'",
-                                            `category_id` = "'.$sent_entry['category_id'].'",
-                                            `title` = "'.$sent_entry['title'].'",
-                                            `description` = "'.$sent_entry['description'].'",
-                                            `price` = "'.$sent_entry['price'].'"
-                                             WHERE `id` = '.$sent_entry['return_id'].';') 
-                or die('an error during update query: '.  $ads_db->error);
+        
+               $statement = $ads_db->prepare('UPDATE `ads_container` SET `private` = "'.$sent_entry['private'].'", '
+                                                                      . '`seller_name` = ?, '
+                                                                      . '`email` = ?, '
+                                                                      . '`allow_mails` = "'.isset($sent_entry['allow_mails']).'", '
+                                                                      . '`phone` = ?, '
+                                                                      . '`location_id` = "'.$sent_entry['location_id'].'", '
+                                                                      . '`category_id` = "'.$sent_entry['category_id'].'", '
+                                                                      . '`title` = ?, '
+                                                                      . '`description` = ?, '
+                                                                      . '`price` = ? '
+                                                                      . 'WHERE `id` = "'.$sent_entry['return_id'].'"') 
+                                            or die('error: '.$ads_db->error);
+               $statement->bind_param('ssssss', $sent_entry['seller_name'], 
+                                                $sent_entry['email'], 
+                                                $sent_entry['phone'],
+                                                $sent_entry['title'],
+                                                $sent_entry['description'],
+                                                $sent_entry['price']
+                                      );
+               $statement->execute();
+               $statement->free_result();
     }else{
         userfunc_query( $ads_db, 'INSERT INTO `ads_container` (`private`, `seller_name`, `email`, `allow_mails`, `phone`, `location_id`, `category_id`, `title`, `description`, `price`)
                                       VALUES ("'.$sent_entry['private'].'","'

@@ -3,33 +3,33 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 ini_set('display_errors', 1);
 header('Content-type: text/html; charset=utf-8');
 //начало функций
+
+function config(){
+    include('./config.php');
+    if (!isset($config_arr)){
+        die ('No userdata, try checking config.php');
+    }
+    return $config_arr;
+}
+
 function adsSQLSave( $sent_entry, $ads_db){  
     foreach ($sent_entry as $key => $value){ 
-        $sent_entry[$key] = $ads_db->real_escape_string($value); //+ в шаблоне сделал вывод с |escape:'htmlall'
+        $sent_entry[$key] = $ads_db->real_escape_string($sent_entry[$key]); //+ в шаблоне сделал вывод с |escape:'htmlall'
+        
     }
     if ( isset( $sent_entry['return_id'] )  &&  is_numeric( $sent_entry['return_id'] ) ){
-        
-               $statement = $ads_db->prepare('UPDATE `ads_container` SET `private` = "'.$sent_entry['private'].'", '
-                                                                      . '`seller_name` = ?, '
-                                                                      . '`email` = ?, '
+                userfunc_query( $ads_db, 'UPDATE `ads_container` SET `private` = "'.$sent_entry['private'].'", '
+                                                                      . '`seller_name` = "'.$sent_entry['seller_name'].'", '
+                                                                      . '`email` = "'.$sent_entry['email'].'", '
                                                                       . '`allow_mails` = "'.isset($sent_entry['allow_mails']).'", '
-                                                                      . '`phone` = ?, '
+                                                                      . '`phone` = "'.$sent_entry['phone'].'", '
                                                                       . '`location_id` = "'.$sent_entry['location_id'].'", '
                                                                       . '`category_id` = "'.$sent_entry['category_id'].'", '
-                                                                      . '`title` = ?, '
-                                                                      . '`description` = ?, '
-                                                                      . '`price` = ? '
+                                                                      . '`title` = "'.$sent_entry['title'].'", '
+                                                                      . '`description` = "'.$sent_entry['description'].'", '
+                                                                      . '`price` = "'.$sent_entry['price'].'" '
                                                                       . 'WHERE `id` = "'.$sent_entry['return_id'].'"') 
                                             or die('error: '.$ads_db->error);
-               $statement->bind_param('ssssss', $sent_entry['seller_name'], 
-                                                $sent_entry['email'], 
-                                                $sent_entry['phone'],
-                                                $sent_entry['title'],
-                                                $sent_entry['description'],
-                                                $sent_entry['price']
-                                      );
-               $statement->execute();
-               $statement->free_result();
     }else{
         userfunc_query( $ads_db, 'INSERT INTO `ads_container` (`private`, `seller_name`, `email`, `allow_mails`, `phone`, `location_id`, `category_id`, `title`, `description`, `price`)
                                       VALUES ("'.$sent_entry['private'].'","'
@@ -48,13 +48,13 @@ function adsSQLSave( $sent_entry, $ads_db){
 
 
 function adsSQLDelete( $delete_id, $ads_db){
-            $delete_id = $ads_db->real_escape_string($delete_id);
              userfunc_query($ads_db, 'DELETE FROM `ads_container` WHERE ((`id` = "'.$delete_id.'"))')
                     or die('and error duing delete query: '.$ads_db->error);
 }
 
 
 function adsReturn( $ads_container, $showform_params, $return_id ){
+    
             $return = $ads_container[$return_id];
             $showform_params = array(
                    'return_private' => $return['private'],
@@ -74,25 +74,15 @@ function adsReturn( $ads_container, $showform_params, $return_id ){
             return $showform_params;
 }
 
-function ads_loadfromsql( $ads_db ) {
+function ads_loadfromsql( $ads_db, $cols , $addition='') { 
         $ads_container ="";
-        $ads_res = userfunc_query( $ads_db, 'SELECT * FROM `ads_container`');
+        $ads_res = userfunc_query( $ads_db, 'SELECT '.  implode(',', $cols).' FROM `ads_container`'.$addition.'');
         while ($return_row = $ads_res->fetch_assoc()) {
-            $ads_container[$return_row['id']] = array(
-                                                        'private' => $return_row['private'],
-                                                        'seller_name' => $return_row['seller_name'],
-                                                        'email' => $return_row['email'],
-                                                        'allow_mails' => $return_row['allow_mails'],
-                                                        'phone' => $return_row['phone'],
-                                                        'location_id' => $return_row['location_id'],
-                                                        'category_id' => $return_row['category_id'],
-                                                        'title' => $return_row['title'],
-                                                        'description' => $return_row['description'],
-                                                        'price' => $return_row['price']
-                                                     );
+            foreach ($cols as $value){
+                $ads_container[$return_row['id']][$value]=$return_row[$value];
+            }
+            
         }
-        
-        
         return $ads_container;
         $ads_res->free();
         $ads_db->close();
@@ -130,9 +120,8 @@ function ads_loadfromsql( $ads_db ) {
 
 
 //конец функций
-if (!$config_arr = include('./config.php')){
-        die('Unable to run configuration file');
-}
+$config_arr = config();
+
 $ads_db = new mysqli($config_arr['server_name'],$config_arr['user_name'],$config_arr['password'],$config_arr['database']);//устанавливаем соденинение
         if ( $ads_db -> connect_errno > 0 ){
              die('Unable to connect'.$ads_db->connect_error().'<a href="./install.php">You might want to install it first </a>');
@@ -167,18 +156,18 @@ $showform_params = array(  //решил его не загружать в бд, 
           }else{
                 $showform_params['notice_title_is_empty'] = 'Введите название';
           }
-   }elseif ( isset($_GET['delentry'] ) ) {           //delete button
+   }elseif ( isset($_GET['delentry']) && is_numeric($_GET['delentry']) ) {           //delete button
              adsSQLDelete( $_GET['delentry'] ,$ads_db );
-   }elseif ( isset($_GET['formreturn']) ) {   
-         $ads_container = ads_loadfromsql( $ads_db );
-         $showform_params = adsReturn( $ads_container, $showform_params, $_GET['formreturn'] );
+   }elseif ( isset($_GET['formreturn'] ) && is_numeric($_GET['formreturn'] )) {   //достаточно ли is_numeric для предотвращения инъекций? или нужно прогнать еще через intval?
+         $cols=array( 'id', 'private', 'seller_name', 'email', 'allow_mails', 'phone', 'location_id', 'category_id', 'title', 'description', 'price' );
+         $ad_toreturn = ads_loadfromsql( $ads_db , $cols , 'WHERE id = '.$_GET['formreturn'] );
          
+         $showform_params = adsReturn( $ad_toreturn, $showform_params, $_GET['formreturn'] );
    }
-  
-   //если еще не загружена база, то загружаем ее.
-   if ( !isset( $ads_container ) ){
-   $ads_container = ads_loadfromsql( $ads_db );
-   }
+
+$cols=array( 'id', 'seller_name', 'title', 'price' );
+$ads_container = ads_loadfromsql( $ads_db , $cols);
+   
 
 $project_root=$_SERVER['DOCUMENT_ROOT'];
 $smarty_dir = $project_root.'/smarty';
@@ -200,5 +189,5 @@ $smarty->assign('ads_container',$ads_container);
 $smarty->assign('cities',$cities);
 $smarty->assign('categories',$categories);
 $smarty->assign('showform_params', $showform_params);
-$smarty->display('L9MySQLi.tpl');
+$smarty->display('L9.tpl');
 ?>

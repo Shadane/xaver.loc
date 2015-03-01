@@ -2,10 +2,14 @@
 error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 ini_set('display_errors', 1);
 header('Content-type: text/html; charset=utf-8');
-if (isset($_POST['install'])){
-if (!$config_arr = include('./config.php')){
-        die('Unable to run configuration file');
+function config(){
+    include('./config.php');
+    if (!isset($config_arr)) die ('No userdata, try checking config.php');
+    return $config_arr;
 }
+
+if (isset($_POST['install'])){
+   $config_arr = config();
    $db = new mysqli($config_arr['server_name'],$config_arr['user_name'],$config_arr['password'],$config_arr['database']);//устанавливаем соденинение
         if ( $db -> connect_errno > 0 ){
              die('Unable to connect'.$db->connect_error());
@@ -122,17 +126,17 @@ mkdir('./smarty/templates');
 }
 
 
-if (is_file('./L9MySQLi.tpl')){
-copy('./L9MySQLi.tpl', './smarty/templates/L9MySQLi.tpl') or die('не удалось переместить файл L9MySQLi.tpl');
-}
-if (is_file('./L9HW.tpl')){
-copy('./L9HW.tpl', './smarty/templates/L9HW.tpl') or die('не удалось переместить файл L9MySQLi.tpl');
+if (is_file('./L9.tpl')){
+copy('./L9.tpl', './smarty/templates/L9.tpl') or die('не удалось переместить файл L9.tpl');
 }
 
 
-
+if (is_file('./L9HW.php')){
 echo '<div style="width: 300px;align= right"><a href=/L9HW.php>Установка завершена успешно! MySQL</a></div>';
+}
+if (is_file('./L9MySQLi.php')){
 echo '<div style="width: 300px;align= right"><a href=/L9MySQLi.php>Установка завершена успешно! MySQLi</a></div>';
+}
 }
 
 

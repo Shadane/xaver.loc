@@ -1,7 +1,7 @@
 <?php
-return array(
+    $config_arr = array(
     'server_name'=> 'localhost',
     'user_name' => 'root',
-    'password'=> '',
-    'database' => 'ads'
-);
+    'password'=> '123',
+    'database' => 'ads');
+

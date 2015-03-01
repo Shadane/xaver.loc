@@ -158,7 +158,7 @@ $showform_params = array(  //решил его не загружать в бд, 
           }
    }elseif ( isset($_GET['delentry']) && is_numeric($_GET['delentry']) ) {           //delete button
              adsSQLDelete( $_GET['delentry'] ,$ads_db );
-   }elseif ( isset($_GET['formreturn'] ) && is_numeric($_GET['formreturn'] )) {   //достаточно ли is_numeric для предотвращения инъекций? или нужно прогнать еще через intval?
+   }elseif ( isset($_GET['formreturn'] ) && is_numeric($_GET['formreturn'] )) {   //достаточно ли is_numeric для предотвращения инъекций? или нужно прогнать еще через intval? Или лучше привести тип к int?
          $cols=array( 'id', 'private', 'seller_name', 'email', 'allow_mails', 'phone', 'location_id', 'category_id', 'title', 'description', 'price' );
          $ad_toreturn = ads_loadfromsql( $ads_db , $cols , 'WHERE id = '.$_GET['formreturn'] );
          

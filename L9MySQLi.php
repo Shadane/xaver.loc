@@ -15,7 +15,7 @@ function config(){
 function adsSQLSave( $sent_entry, $ads_db){  
     foreach ($sent_entry as $key => $value){ 
         $sent_entry[$key] = $ads_db->real_escape_string($sent_entry[$key]); //+ в шаблоне сделал вывод с |escape:'htmlall'
-        
+       
     }
     if ( isset( $sent_entry['return_id'] )  &&  is_numeric( $sent_entry['return_id'] ) ){
                 userfunc_query( $ads_db, 'UPDATE `ads_container` SET `private` = "'.$sent_entry['private'].'", '
@@ -77,15 +77,17 @@ function adsReturn( $ads_container, $showform_params, $return_id ){
 function ads_loadfromsql( $ads_db, $cols , $addition='') { 
         $ads_container ="";
         $ads_res = userfunc_query( $ads_db, 'SELECT '.  implode(',', $cols).' FROM `ads_container`'.$addition.'');
+        if (  $ads_res->num_rows  >  0  ){ //проверка загрузилось ли что-то с базы данных.
         while ($return_row = $ads_res->fetch_assoc()) {
             foreach ($cols as $value){
                 $ads_container[$return_row['id']][$value]=$return_row[$value];
             }
             
         }
+
         return $ads_container;
+        }
         $ads_res->free();
-        $ads_db->close();
 }
 
 
@@ -161,13 +163,16 @@ $showform_params = array(  //решил его не загружать в бд, 
    }elseif ( isset($_GET['formreturn'] ) && is_numeric($_GET['formreturn'] )) {   //достаточно ли is_numeric для предотвращения инъекций? или нужно прогнать еще через intval? Или лучше привести тип к int?
          $cols=array( 'id', 'private', 'seller_name', 'email', 'allow_mails', 'phone', 'location_id', 'category_id', 'title', 'description', 'price' );
          $ad_toreturn = ads_loadfromsql( $ads_db , $cols , 'WHERE id = '.$_GET['formreturn'] );
-         
-         $showform_params = adsReturn( $ad_toreturn, $showform_params, $_GET['formreturn'] );
+
+         if ($ad_toreturn){
+            $showform_params = adsReturn( $ad_toreturn, $showform_params, $_GET['formreturn'] );
+         }
    }
 
 $cols=array( 'id', 'seller_name', 'title', 'price' );
 $ads_container = ads_loadfromsql( $ads_db , $cols);
-   
+
+$ads_db->close();
 
 $project_root=$_SERVER['DOCUMENT_ROOT'];
 $smarty_dir = $project_root.'/smarty';

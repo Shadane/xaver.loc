@@ -3,7 +3,28 @@ error_reporting(E_ERROR | E_WARNING | E_PARSE | E_NOTICE);
 ini_set('display_errors', 1);
 header('Content-type: text/html; charset=utf-8');
 
+function config(){
+    include('./config.php');
+    if (!isset($config_arr)){
+        die ('No userdata, try checking config.php');
+    }
+    return $config_arr;
+}
+
+function dbconnect($config_arr){
+        $ads_db = mysql_connect($config_arr['server_name'],$config_arr['user_name'],$config_arr['password']) 
+                        or die('Cannot connect to database.You might want to <a href="./install.php">install</a>it first '.  mysql_error());
+        mysql_select_db($config_arr['database'],$ads_db) 
+                        or die('Unable to select database. You might want to <a href="./install.php">install</a>it first'.mysql_error());
+        mysql_query('set names utf8')
+                        or die('Unable to set names'.mysql_error());
+return $ads_db;
+}
+
 function adsSQLSave( $sent_entry){  
+     foreach ($sent_entry as $key => $value){ 
+        $sent_entry[$key] = mysql_real_escape_string($sent_entry[$key]);
+     }
     if ( isset( $sent_entry['return_id'] )  &&  is_numeric( $sent_entry['return_id'] ) ){
             mysql_query('UPDATE `ads_container` SET
                                             `private` = '.$sent_entry['private'].',
@@ -41,7 +62,16 @@ function adsSQLDelete( $delete_id){
 }
 
 
-function adsReturn( $ads_container, $showform_params, $return_id ){
+function adsReturn( $showform_params, $return_id ){
+    
+        $cols=array( 'id', 'private', 'seller_name', 'email', 'allow_mails', 'phone', 'location_id', 'category_id', 'title', 'description', 'price' );
+        $query = 'SELECT '.implode (',', $cols).' FROM `ads_container` WHERE id = '.$return_id;
+        $ads_container= adsLoad($query, $cols);
+        if (!$ads_container){
+           return;
+        }
+            
+    
             $return = $ads_container[$return_id];
             $showform_params = array(
                    'return_private' => $return['private'],
@@ -61,22 +91,13 @@ function adsReturn( $ads_container, $showform_params, $return_id ){
             return $showform_params;
 }
 
-function ads_loadfromsql() {
+function adsLoad($query, $cols) {
         $ads_container ="";
-        $ads_res = mysql_query('SELECT * FROM `ads_container`') or die('Unable to select ads table:'.mysql_error());
+        $ads_res = mysql_query($query) or die('Unable to load ads from database'.mysql_error());
         while ($return_row = mysql_fetch_assoc($ads_res)) {
-            $ads_container[$return_row['id']] = array(
-                                                        'private' => $return_row['private'],
-                                                        'seller_name' => $return_row['seller_name'],
-                                                        'email' => $return_row['email'],
-                                                        'allow_mails' => $return_row['allow_mails'],
-                                                        'phone' => $return_row['phone'],
-                                                        'location_id' => $return_row['location_id'],
-                                                        'category_id' => $return_row['category_id'],
-                                                        'title' => $return_row['title'],
-                                                        'description' => $return_row['description'],
-                                                        'price' => $return_row['price']
-                                                     );
+            foreach ($cols as $value){
+                $ads_container[$return_row['id']][$value]=$return_row[$value];
+            }
         }
         mysql_free_result($ads_res);
         return $ads_container;
@@ -103,21 +124,10 @@ function categories_load(){
 
 
 
-
-
-
-
-
 //создаем подключение
-if (!$config_arr = include('./config.php')){
-    die('Unable to run configuration file');
-}
-$ads_db = mysql_connect($config_arr['server_name'],$config_arr['user_name'],$config_arr['password']) 
-                        or die('Cannot connect to database.You might want to <a href="./install.php">install</a>it first '.  mysql_error());
-mysql_select_db($config_arr['database'],$ads_db) 
-                        or die('Unable to select database. You might want to <a href="./install.php">install</a>it first'.mysql_error());
-mysql_query('set names utf8')
-                        or die('Unable to set names'.mysql_error());
+
+$config_arr = config();
+$ads_db = dbconnect($config_arr);
 
    
 //массивы
@@ -147,21 +157,22 @@ $categories= categories_load();
           }else{
                 $showform_params['notice_title_is_empty'] = 'Введите название';
           }
-   }elseif ( isset($_GET['delentry'] ) ) {           //delete button
+  }elseif ( isset($_GET['delentry']) && is_numeric($_GET['delentry']) ) {           //delete button
              adsSQLDelete( $_GET['delentry'] );
-   }elseif ( isset($_GET['formreturn']) ) {   
-         $ads_container = ads_loadfromsql();
-         $showform_params = adsReturn( $ads_container, $showform_params, $_GET['formreturn'] );
+  }elseif ( isset($_GET['formreturn'] ) && is_numeric($_GET['formreturn'] )) {
+             $showform_params = adsReturn( $showform_params, $_GET['formreturn'] );
          
    }
-  
-   //если еще не загружена база, то загружаем ее.
-   if ( !isset( $ads_container ) ){
-   $ads_container = ads_loadfromsql();
-   }
+   
+   
+   //loading ads
+   $cols=array( 'id', 'seller_name', 'title', 'price' );
+   $query = 'SELECT '.implode (',', $cols).' FROM `ads_container`';
+   $ads_container = adsLoad($query,$cols);
    
    
    
+//smarty block+display
 $project_root=$_SERVER['DOCUMENT_ROOT'];
 $smarty_dir = $project_root.'/smarty';
 
@@ -182,5 +193,5 @@ $smarty->assign('ads_container',$ads_container);
 $smarty->assign('cities',$cities);
 $smarty->assign('categories',$categories);
 $smarty->assign('showform_params', $showform_params);
-$smarty->display('L9HW.tpl');
+$smarty->display('L9.tpl');
 ?>

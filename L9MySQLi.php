@@ -12,6 +12,18 @@ function config(){
     return $config_arr;
 }
 
+function dbconnect($config_arr){
+$ads_db = new mysqli($config_arr['server_name'],$config_arr['user_name'],$config_arr['password'],$config_arr['database']);//устанавливаем соденинение
+        if ( $ads_db -> connect_errno > 0 ){
+             die('Unable to connect'.$ads_db->connect_error().'<a href="./install.php">You might want to install it first </a>');
+        }
+if (!$ads_db ->set_charset('utf8')){
+       die('Error while applying utf8 charset:  '.$ads_db->error);
+}
+return $ads_db;
+}
+
+
 function adsSQLSave( $sent_entry, $ads_db){  
     foreach ($sent_entry as $key => $value){ 
         $sent_entry[$key] = $ads_db->real_escape_string($sent_entry[$key]); //+ в шаблоне сделал вывод с |escape:'htmlall'
@@ -53,9 +65,16 @@ function adsSQLDelete( $delete_id, $ads_db){
 }
 
 
-function adsReturn( $ads_container, $showform_params, $return_id ){
+function adsReturn( $ads_db, $showform_params, $return_id ){
+         $cols=array( 'id', 'private', 'seller_name', 'email', 'allow_mails', 'phone', 'location_id', 'category_id', 'title', 'description', 'price' );
+         $query = 'SELECT '.implode(',', $cols).' FROM `ads_container` WHERE id = '.$return_id;
+         $ad_toreturn = adsLoad( $ads_db , $query , $cols );
+         
+         if (!$ad_toreturn){
+             return $showform_params;
+         }
     
-            $return = $ads_container[$return_id];
+            $return = $ad_toreturn[$return_id];
             $showform_params = array(
                    'return_private' => $return['private'],
                    'namereturn' => $return['seller_name'],
@@ -74,20 +93,19 @@ function adsReturn( $ads_container, $showform_params, $return_id ){
             return $showform_params;
 }
 
-function ads_loadfromsql( $ads_db, $cols , $addition='') { 
+function adsLoad( $ads_db, $query , $cols) { 
         $ads_container ="";
-        $ads_res = userfunc_query( $ads_db, 'SELECT '.  implode(',', $cols).' FROM `ads_container`'.$addition.'');
-        if (  $ads_res->num_rows  >  0  ){ //проверка загрузилось ли что-то с базы данных.
+        $ads_res = userfunc_query( $ads_db, $query );
         while ($return_row = $ads_res->fetch_assoc()) {
             foreach ($cols as $value){
                 $ads_container[$return_row['id']][$value]=$return_row[$value];
             }
             
         }
-
-        return $ads_container;
-        }
         $ads_res->free();
+        return $ads_container;
+        
+        
 }
 
 
@@ -97,7 +115,6 @@ function ads_loadfromsql( $ads_db, $cols , $addition='') {
               die('Error during query[' . $ads_db->error . ']');
         }
         return $result;
-        $result->free();
     }
 
 
@@ -121,19 +138,12 @@ function ads_loadfromsql( $ads_db, $cols , $addition='') {
      }
 
 
-//конец функций
+//connection
 $config_arr = config();
-
-$ads_db = new mysqli($config_arr['server_name'],$config_arr['user_name'],$config_arr['password'],$config_arr['database']);//устанавливаем соденинение
-        if ( $ads_db -> connect_errno > 0 ){
-             die('Unable to connect'.$ads_db->connect_error().'<a href="./install.php">You might want to install it first </a>');
-        }
-if (!$ads_db ->set_charset('utf8')){
-       die('Error while applying utf8 charset:  '.$ads_db->error);
-}
+$ads_db = dbconnect($config_arr);
 
     
-    
+//filling arrays  
 $cities = cities_load($ads_db);
 $categories = categories_load($ads_db);
 
@@ -151,7 +161,7 @@ $showform_params = array(  //решил его не загружать в бд, 
                         'notice_field_is_empty'=> "",
                         'return_id' => ""
                          );
-  
+//button controller
    if ( isset( $_POST['main_form_submit'] ) ) {    //send button
           if ( $_POST['title'] ){
              adsSQLSave( $_POST, $ads_db );
@@ -161,19 +171,18 @@ $showform_params = array(  //решил его не загружать в бд, 
    }elseif ( isset($_GET['delentry']) && is_numeric($_GET['delentry']) ) {           //delete button
              adsSQLDelete( $_GET['delentry'] ,$ads_db );
    }elseif ( isset($_GET['formreturn'] ) && is_numeric($_GET['formreturn'] )) {   //достаточно ли is_numeric для предотвращения инъекций? или нужно прогнать еще через intval? Или лучше привести тип к int?
-         $cols=array( 'id', 'private', 'seller_name', 'email', 'allow_mails', 'phone', 'location_id', 'category_id', 'title', 'description', 'price' );
-         $ad_toreturn = ads_loadfromsql( $ads_db , $cols , 'WHERE id = '.$_GET['formreturn'] );
-
-         if ($ad_toreturn){
-            $showform_params = adsReturn( $ad_toreturn, $showform_params, $_GET['formreturn'] );
-         }
+            $showform_params = adsReturn( $ads_db, $showform_params, $_GET['formreturn'] );
    }
 
-$cols=array( 'id', 'seller_name', 'title', 'price' );
-$ads_container = ads_loadfromsql( $ads_db , $cols);
-
+   
+//loading all ads for table
+$cols= array( 'id', 'seller_name', 'title', 'price' );
+$query = 'SELECT '.implode (',', $cols).' FROM `ads_container`';
+$ads_container = adsLoad( $ads_db , $query , $cols );
+//closing connection
 $ads_db->close();
 
+//smarty assigns, display
 $project_root=$_SERVER['DOCUMENT_ROOT'];
 $smarty_dir = $project_root.'/smarty';
 

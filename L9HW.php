@@ -68,7 +68,7 @@ function adsReturn( $showform_params, $return_id ){
         $query = 'SELECT '.implode (',', $cols).' FROM `ads_container` WHERE id = '.$return_id;
         $ads_container= adsLoad($query, $cols);
         if (!$ads_container){
-           return;
+           return $showform_params;
         }
             
     

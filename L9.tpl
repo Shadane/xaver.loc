@@ -6,7 +6,7 @@
             div {literal}{ width: 800px;}{/literal}
           </style>  
    </HEAD>
-<form  method="post">
+<form method="post">
     <div style="margin-left:208px;margin-top:10px"> 
         {html_radios name='private' class='private' options=$radios selected=$showform_params.return_private}
     </div> 
@@ -47,7 +47,7 @@
     </div>
     <div style="margin-left:60px;  margin-top:10px">
         <label>Название объявления</label> 
-        <input style="margin-left:12px; width:230px;" type="text" maxlength="30" placeholder="{$showform_params.notice_field_is_empty}" value="{$showform_params.returntitle|strip|escape:'htmlall'}" name="title">
+        <input style="margin-left:12px; width:230px;" type="text" maxlength="30" placeholder="{$showform_params.notice_title_is_empty}" value="{$showform_params.returntitle|strip|escape:'htmlall'}" name="title">
     </div>
     <div style="margin-left:60px;  margin-top:10px"> 
         <label style="position:absolute">Описание объявления</label>
@@ -77,11 +77,13 @@
          </div>
 {if $ads_container}
     {foreach from=$ads_container key=key item=arr}
+
         <tr>
             <td> |  <a href="?formreturn={$key}"> {$arr.title|escape:'htmlall'}</a></td>
             <td>  |  {$arr.price|escape:'htmlall'}</td>
             <td>  |  {$arr.seller_name|escape:'htmlall'}</td>
             <td>  |  <a href="?delentry={$key}">Удалить</a> |</td>
             </tr>  
+           
     {/foreach}
 {/if}

@@ -47,7 +47,7 @@ function escape_2dim_arr($ads_db, $sent_entry){
        return $sent_entry;
 }
 function adsSQLSave( $sent_entry, $ads_db){ 
-$sent_entry = escape_2dim_arr($ads_db, $sent_entry);
+
     if ( isset( $sent_entry['return_id'] )  &&  is_numeric( $sent_entry['return_id'] ) ){
                 userfunc_query( $ads_db, 'UPDATE `ads_container` SET `private` = "'.$sent_entry['private'].'", '                                                                     
                                                                       . '`allow_mails` = "'.isset($sent_entry['allow_mails']).'", '
@@ -184,9 +184,10 @@ $showform_params = array(  //решил его не загружать в бд, 
                          );
 //button controller
    if ( isset( $_POST['main_form_submit'] ) ) {    //send button
-          if ( $_POST['title']&&(($_POST['seller_name']&&$_POST['email'])||($_POST['saved_email'])) ){
+          if ( $_POST['title']&&(($_POST['seller_name']&&$_POST['email'])||($_POST['saved_email'])) ){//если есть название и (название+мыло или указано сохраненное)
+              $sent_entry = escape_2dim_arr($ads_db, $_POST);
               $_POST['author_id'] = author_controller($ads_db,$_POST);
-             adsSQLSave( $_POST, $ads_db );
+              adsSQLSave( $_POST, $ads_db );
           }else{
                 $showform_params['notice_title_is_empty'] = 'You must fill Name, Email and Title(or choose email+name from selector) fields to proceed ';
           }

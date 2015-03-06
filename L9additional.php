@@ -184,7 +184,7 @@ $showform_params = array(  //решил его не загружать в бд, 
                          );
 //button controller
    if ( isset( $_POST['main_form_submit'] ) ) {    //send button
-          if ( $_POST['title']&&(($_POST['seller_name']&&$_POST['email'])||($_POST['saved_email'])) ){//если есть название и (название+мыло или указано сохраненное)
+          if ( $_POST['title']&&(($_POST['seller_name']&&$_POST['email'])||($_POST['saved_email'])) ){//если есть (название и (имя+мыло или указано сохраненное)
               $sent_entry = escape_2dim_arr($ads_db, $_POST);
               $_POST['author_id'] = author_controller($ads_db,$_POST);
               adsSQLSave( $_POST, $ads_db );

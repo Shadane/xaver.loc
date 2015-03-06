@@ -14,12 +14,19 @@
         <label>
             Ваше имя
         </label>
-        <input style="margin-left:90px; width:230px" type="text" maxlength="20" value="{$showform_params.namereturn|strip|escape:'htmlall'}" name="seller_name">
+        <input style="margin-left:90px; width:230px" type="text" maxlength="20" value="{$showform_params.namereturn|strip|escape:'htmlall':'utf-8'}" name="seller_name">
     </div>
     <div style="margin-left:60px;  margin-top:10px"> 
         <label>Электронная почта</label>
-        <input style="margin-left:27px; width:230px;" type="text"  value="{$showform_params.email_return|strip|escape:'htmlall'}" name="email">
+        <input style="margin-left:27px; width:230px;" type="text" maxlength="50" value="{$showform_params.email_return|strip|escape:'htmlall':'utf-8'}" name="email">
+        <div>
+            <select style="margin-left:242px; width:150px;height:15px;margin-top:-5px" title="список авторов" name="saved_email"> 
+                 <option value="0"></option>
+                  {html_options options=$emails selected=$showform_params.emails} 
+            </select>
+        </div>  
     </div>
+     
     <div style="margin-left:217px;  margin-top:10px">
         <label> 
             <input type="checkbox" {$showform_params.return_send_email} value="1" name="allow_mails">
@@ -28,7 +35,7 @@
     </div>
     <div style="margin-left:60px;  margin-top:10px"> 
         <label>Номер телефона</label>
-        <input style="margin-left:46px; width:230px" type="text"  value="{$showform_params.phonereturn|strip|escape:'htmlall'}" name="phone">
+        <input style="margin-left:46px; width:230px" type="text"  value="{$showform_params.phonereturn|strip|escape:'htmlall':'utf-8'}" name="phone">
     </div>
     <div style="margin-left:60px;  margin-top:10px"> 
        <label >Город</label> 
@@ -47,19 +54,22 @@
     </div>
     <div style="margin-left:60px;  margin-top:10px">
         <label>Название объявления</label> 
-        <input style="margin-left:12px; width:230px;" type="text" maxlength="30" placeholder="{$showform_params.notice_title_is_empty}" value="{$showform_params.returntitle|strip|escape:'htmlall'}" name="title">
+        <input style="margin-left:12px; width:230px;" type="text" maxlength="30" value="{$showform_params.returntitle|strip|escape:'htmlall':'utf-8'}" name="title">
     </div>
     <div style="margin-left:60px;  margin-top:10px"> 
         <label style="position:absolute">Описание объявления</label>
-        <textarea style="margin-left:162px; width:230px;height:70px;" maxlength="500" name="description" >{$showform_params.returndescription|strip|escape:'htmlall'}</textarea>
+        <textarea style="margin-left:162px; width:230px;height:70px;" maxlength="500" name="description" >{$showform_params.returndescription|strip|escape:'htmlall':'utf-8'}</textarea>
     </div>
     <div style="margin-left:60px;  margin-top:10px"> 
         <label >Цена</label>
-        <input style="margin-left:124px; width:230px" type="text" maxlength="9"  value="{$showform_params.returnprice|strip|escape:'htmlall'}" name="price" >                                                         
+        <input style="margin-left:124px; width:230px" type="text" maxlength="9"  value="{$showform_params.returnprice|strip|escape:'htmlall':'utf-8'}" name="price" >                                                         
     </div>
     <div style="margin-left:221px;  margin-top:10px"> 
         <input type="hidden" value="{$showform_params.return_id}" name="return_id" >
         <input style="height:30px;font-weight: 700;color:white;border-radius: 3px;background: rgb(64,199,129);box-shadow: 0 -3px rgb(53,167,110) inset;transition: 0.2s;" type="submit" value="Отправить" name="main_form_submit"  > </div>
+    </div>
+    <div style="margin-left:60px;  margin-top:10px; height: 30px">
+        {$showform_params.notice_title_is_empty}
     </div>
 </form>
     
@@ -79,9 +89,9 @@
     {foreach from=$ads_container key=key item=arr}
 
         <tr>
-            <td> |  <a href="?formreturn={$key}"> {$arr.title|escape:'htmlall'}</a></td>
-            <td>  |  {$arr.price|escape:'htmlall'}</td>
-            <td>  |  {$arr.seller_name|escape:'htmlall'}</td>
+            <td> |  <a href="?formreturn={$key}"> {$arr.title|escape:'htmlall':'utf-8'}</a></td>
+            <td>  |  {$arr.price|escape:'htmlall':'utf-8'}</td>
+            <td>  |  {$arr.seller_name|escape:'htmlall':'utf-8'}</td>
             <td>  |  <a href="?delentry={$key}">Удалить</a> |</td>
             </tr>  
            
